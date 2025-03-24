@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据问答系统</title>
+    <script src="static/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f5f5f5;
+            color: #333;
+            font-size: 10px;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            height: 100vh;
+            padding: 10px;
+            margin: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sample-questions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .sample-question {
+            background: #f0f4f8;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #2d3748;
+            cursor: pointer;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            text-align: left;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .sample-question:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e0;
+            transform: translateX(3px);
+        }
+
+        .chat-header {
+            padding: 10px 20px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 20px;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            word-break: break-word;
+        }
+
+        .message.user {
+            margin-left: auto;
+            align-items: flex-end;
+        }
+
+        .message-content {
+            padding: 10px 14px;
+            border-radius: 10px;
+            display: inline-block;
+            width: fit-content;
+            min-width: 50px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            font-size: 14px;
+        }
+
+        .user .message-content {
+            background: #007bff;
+            color: white;
+            text-align: left;
+            margin-left: auto;
+        }
+
+        .assistant .message-content {
+            background: #e9ecef;
+            color: #333;
+            margin-right: auto;
+        }
+
+        .sql-block {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            text-align: left;
+            width: 100%;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: typing 1s infinite;
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        .sql-section {
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .sql-header {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sql-header:hover {
+            background: #e5e5e5;
+        }
+
+        .sql-content {
+            display: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-top: 1px solid #ddd;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .sql-content.show {
+            display: block;
+        }
+
+        .message-content strong {
+            font-weight: 600;
+        }
+
+        .message-content code {
+            background: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .message-content pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        .clear-button {
+            background: #dc3545;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .clear-button:hover {
+            background: #c82333;
+        }
+
+        .copy-button {
+            position: absolute;
+            background: transparent;
+            color: #666;
+            padding: 4px 8px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .user .copy-button {
+            right: -40px;
+            top: 0;
+            left: auto;
+        }
+
+        .assistant .copy-button {
+            right: -40px;
+            top: 0;
+        }
+
+        .sql-header {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sql-header-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sql-header .copy-button {
+            position: static;
+            opacity: 1;
+            padding: 2px 6px;
+            font-size: 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+        }
+
+        .sql-header .copy-button:hover {
+            background: #f8f9fa;
+            border-color: #999;
+        }
+
+        .message:hover .copy-button {
+            opacity: 1;
+        }
+
+        .copy-button:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .summary-content {
+            padding: 12px 16px;
+        }
+        
+        .summary-content p {
+            margin-bottom: 1em;
+        }
+        
+        .summary-content ul, 
+        .summary-content ol {
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+        }
+        
+        .summary-content li {
+            margin-bottom: 0.5em;
+        }
+        
+        .summary-content code {
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .summary-content pre {
+            background-color: #f8f9fa;
+            padding: 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin-bottom: 1em;
+        }
+        
+        .summary-content h1,
+        .summary-content h2,
+        .summary-content h3,
+        .summary-content h4,
+        .summary-content h5,
+        .summary-content h6 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+        }
+
+        .summary-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-content th,
+        .summary-content td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        .summary-content th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .summary-content tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .summary-content tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .results-table {
+            min-width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e0e0e0;
+        }
+
+        .results-table th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .results-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .results-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .results-code {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .sql-content code {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .chart-section {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px !important;
+            margin: 10px 0;
+            background: #fff;
+            min-width: 800px;
+        }
+        
+        .view-toggle {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            margin: 10px;
+            padding: 5px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .view-toggle button {
+            padding: 5px 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            color: #333;
+        }
+        
+        .view-toggle button.active {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        
+        .view-content {
+            display: none;
+        }
+        
+        .view-content.active {
+            display: block;
+        }
+
+        .chart-controls {
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .chart-type-tabs {
+            display: flex;
+            gap: 2px;
+            padding: 0 10px;
+        }
+
+        .chart-type-tab {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            background: #f5f5f5;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .chart-type-tab:hover {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .chart-type-tab.active {
+            background: #fff;
+            color: #007bff;
+            border-color: #ddd;
+            border-bottom: 2px solid #fff;
+            margin-bottom: -1px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>数据问答系统</h2>
+                <button id="clearButton" class="clear-button">清空消息</button>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-content">
+                        您好！我是您的数据助手，请问有什么可以帮您查询的吗？
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="请输入您的问题..." />
+                <button id="sendButton">发送</button>
+            </div>
+        </div>
+        <div class="sidebar">
+            <div class="sidebar-title">示例问题</div>
+            <div class="sample-questions" id="sampleQuestions">
+                <!-- Sample questions will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; font-size: 12px; color: #666; margin-top: 20px;"><p>此demo用于帮助数据仓库开发人员学习sql语句编写，内容由 AI 生成，请仔细甄别</p></footer>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const clearButton = document.getElementById('clearButton');
+        const sampleQuestionsContainer = document.getElementById('sampleQuestions');
+        
+        // Fetch environment variables for visibility control
+        let showSqlQuery = true;
+        let showQueryResult = true;
+        
+        fetch('/api/env-config')
+            .then(response => response.json())
+            .then(config => {
+                showSqlQuery = config.showSqlQuery === "是";
+                showQueryResult = config.showQueryResult === "是";
+                
+                // Add sample questions
+                if (config.sampleQuestions && Array.isArray(config.sampleQuestions)) {
+                    config.sampleQuestions.forEach(question => {
+                        const questionElement = document.createElement('div');
+                        questionElement.className = 'sample-question';
+                        questionElement.textContent = question;
+                        questionElement.onclick = () => {
+                            userInput.value = question;
+                            sendMessage();
+                        };
+                        sampleQuestionsContainer.appendChild(questionElement);
+                    });
+                }
+            })
+            .catch(error => console.error('Error loading config:', error));
+
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: false,
+            mangle: false
+        });
+
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('show');
+            const arrow = header.querySelector('.arrow');
+            arrow.textContent = content.classList.contains('show') ? '▼' : '▶';
+        }
+
+        function addMessage(content, type = 'assistant', insertBefore = null) {
+            const messagesContainer = document.querySelector('.chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            
+            if (type === 'user') {
+                messageContent.textContent = content;
+            } else {
+                if (typeof content === 'string') {
+                    messageContent.innerHTML = marked.parse(content);
+                } else if (content.type === 'sql_generation') {
+                    const sqlSection = document.createElement('div');
+                    sqlSection.className = 'sql-section';
+                    
+                    const sqlHeader = document.createElement('div');
+                    sqlHeader.className = 'sql-header';
+                    sqlHeader.innerHTML = '<span>SQL查询</span><span>点击展开/收起</span>';
+                    
+                    const sqlContent = document.createElement('div');
+                    sqlContent.className = 'sql-content';
+                    sqlContent.textContent = content.content;
+                    
+                    sqlHeader.onclick = () => sqlContent.classList.toggle('show');
+                    
+                    sqlSection.appendChild(sqlHeader);
+                    sqlSection.appendChild(sqlContent);
+                    messageContent.appendChild(sqlSection);
+                } else if (content.type === 'query_results') {
+                    const resultsSection = document.createElement('div');
+                    resultsSection.className = 'sql-section';
+                    
+                    const resultsHeader = document.createElement('div');
+                    resultsHeader.className = 'sql-header';
+                    resultsHeader.innerHTML = '<span>查询结果</span><span>点击展开/收起</span>';
+                    
+                    const resultsContent = document.createElement('div');
+                    resultsContent.className = 'sql-content';
+                    resultsContent.textContent = JSON.stringify(content.content, null, 2);
+                    
+                    resultsHeader.onclick = () => resultsContent.classList.toggle('show');
+                    
+                    resultsSection.appendChild(resultsHeader);
+                    resultsSection.appendChild(resultsContent);
+                    messageContent.appendChild(resultsSection);
+                } else if (content.type === 'summary') {
+                    messageContent.innerHTML = marked.parse(content.content);
+                } else if (content.error) {
+                    messageContent.textContent = `错误: ${content.error}`;
+                    messageContent.style.color = 'red';
+                }
+            }
+
+            messageDiv.appendChild(messageContent);
+            
+            // 添加复制按钮
+            const copyButton = document.createElement('button');
+            copyButton.className = 'copy-button';
+            copyButton.textContent = '复制';
+            copyButton.onclick = () => {
+                const textToCopy = type === 'user' ? content : 
+                    (typeof content === 'string' ? content : 
+                    (content.type === 'sql_generation' ? content.content : 
+                    content.type === 'summary' ? content.content : 
+                    content.type === 'query_results' ? JSON.stringify(content.content, null, 2) : 
+                    JSON.stringify(content, null, 2)));
+                navigator.clipboard.writeText(textToCopy);
+                copyButton.textContent = '已复制';
+                setTimeout(() => copyButton.textContent = '复制', 2000);
+            };
+            messageDiv.appendChild(copyButton);
+            
+            messageDiv.onmouseover = () => copyButton.style.opacity = '1';
+            messageDiv.onmouseout = () => copyButton.style.opacity = '0';
+
+            if (insertBefore) {
+                try {
+                    messagesContainer.insertBefore(messageDiv, insertBefore);
+                } catch (error) {
+                    // 如果insertBefore失败，直接追加到末尾
+                    messagesContainer.appendChild(messageDiv);
+                }
+            } else {
+                messagesContainer.appendChild(messageDiv);
+            }
+
+            // 滚动到底部
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        function createResponseContainer() {
+            const container = document.createElement('div');
+            container.className = 'message assistant';
+            
+            // SQL section
+            const sqlSection = document.createElement('div');
+            sqlSection.className = 'message-content sql-section';
+            sqlSection.style.display = showSqlQuery ? 'block' : 'none';
+            sqlSection.innerHTML = `
+                <div class="sql-header" onclick="toggleSection(this)">
+                    <div class="sql-header-content">
+                        <span>SQL查询</span>
+                        <span class="arrow">▶</span>
+                    </div>
+                    <button class="copy-button" onclick="event.stopPropagation(); copyContent(this.closest('.sql-section').querySelector('.sql-code').textContent, this)">复制</button>
+                </div>
+                <div class="sql-content">
+                    <pre><code class="sql-code"></code></pre>
+                </div>
+            `;
+            
+            // Results section
+            const resultsSection = document.createElement('div');
+            resultsSection.className = 'message-content sql-section';
+            resultsSection.style.display = showQueryResult ? 'block' : 'none';
+            resultsSection.innerHTML = `
+                <div class="sql-header" onclick="toggleSection(this)">
+                    <div class="sql-header-content">
+                        <span>查询结果</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <button class="copy-button" onclick="event.stopPropagation(); copyContent(this.closest('.sql-section').querySelector('.results-code').textContent, this)">复制</button>
+                </div>
+                <div class="sql-content show">
+                    <div class="results-code"></div>
+                </div>
+            `;
+
+            // Chart section
+            const chartSection = document.createElement('div');
+            chartSection.className = 'message-content sql-section';
+            chartSection.style.display = showQueryResult ? 'block' : 'none';
+            chartSection.innerHTML = `
+                <div class="sql-header" onclick="toggleSection(this)">
+                    <div class="sql-header-content">
+                        <span>图表视图</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                </div>
+                <div class="sql-content show">
+                    <div class="chart-controls">
+                        <div class="chart-type-tabs">
+                            <div class="chart-type-tab active" data-type="bar">柱状图</div>
+                            <div class="chart-type-tab" data-type="bar-horizontal">条形图</div>
+                            <div class="chart-type-tab" data-type="line-smooth">平滑折线图</div>
+                            <div class="chart-type-tab" data-type="area-stack">堆叠面积图</div>
+                            <div class="chart-type-tab" data-type="pie-doughnut">圆角环形图</div>
+                            <div class="chart-type-tab" data-type="scatter">散点图</div>
+                            <div class="chart-type-tab" data-type="heatmap-cartesian">热力图</div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 400px;"></div>
+                </div>
+            `;
+            
+            // Summary section
+            const summaryWrapper = document.createElement('div');
+            summaryWrapper.className = 'message-content sql-section';
+            summaryWrapper.innerHTML = `
+                <div class="sql-header" onclick="toggleSection(this)">
+                    <div class="sql-header-content">
+                        <span>查询总结</span>
+                        <span class="arrow">▼</span>
+                    </div>
+                    <button class="copy-button" onclick="event.stopPropagation(); copyContent(this.closest('.sql-section').querySelector('.summary-content').textContent, this)">复制</button>
+                </div>
+                <div class="sql-content show">
+                    <div class="summary-content"></div>
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            
+            // 添加所有部分到容器
+            container.appendChild(sqlSection);
+            container.appendChild(resultsSection);
+            container.appendChild(chartSection);
+            container.appendChild(summaryWrapper);
+            
+            // 添加到消息容器
+            const chatMessages = document.querySelector('.chat-messages');
+            chatMessages.appendChild(container);
+            
+            // 返回所有需要的元素引用
+            return {
+                container,
+                sqlCode: sqlSection.querySelector('.sql-code'),
+                resultsCode: resultsSection.querySelector('.results-code'),
+                chartContainer: chartSection.querySelector('.chart-container'),
+                summary: summaryWrapper.querySelector('.summary-content'),
+                typingIndicator: summaryWrapper.querySelector('.typing-indicator')
+            };
+        }
+
+        function copyContent(content, button) {
+            if (!content) {
+                console.error('No content to copy');
+                return; // Exit if content is undefined
+            }
+            
+            console.log('Content to copy:', content); // Log the content being copied
+            
+            if (!navigator.clipboard) {
+                console.error('Clipboard API not available');
+                return; // Exit if Clipboard API is not available
+            }
+            
+            navigator.clipboard.writeText(content).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '已复制';
+                setTimeout(() => {
+                    button.textContent = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            userInput.value = '';
+            userInput.disabled = true;
+            sendButton.disabled = true;
+
+            // 添加用户消息
+            addMessage(message, 'user');
+
+            // 显示加载指示器
+            const loadingMessage = addMessage('正在生成 SQL 查询...', 'assistant');
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                let responseElements = null;
+                
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                // 如果是第一条数据，创建响应容器
+                                if (!responseElements) {
+                                    responseElements = createResponseContainer();
+                                    if (responseElements.typingIndicator) {
+                                        responseElements.typingIndicator.style.display = 'block';
+                                    }
+                                }
+
+                                // 确保responseElements存在后再处理数据
+                                if (responseElements) {
+                                    switch (data.type) {
+                                        case 'sql_generation':
+                                            if (responseElements.sqlCode && data.content) {
+                                                responseElements.sqlCode.textContent = data.content;
+                                                const sqlContent = responseElements.sqlCode.parentElement;
+                                                if (sqlContent) {
+                                                    // Remove auto-show for SQL section
+                                                    const arrow = sqlContent.previousElementSibling?.querySelector('.arrow');
+                                                    if (arrow) arrow.textContent = '▶';
+                                                }
+                                            }
+                                            break;
+                                        case 'query_results':
+                                            if (responseElements.resultsCode && data.content) {
+                                                // 添加调试日志
+                                                console.log('Query results data:', data.content);
+                                                console.log('Is Array:', Array.isArray(data.content));
+                                                console.log('Length:', data.content.length);
+                                                
+                                                // 表格视图
+                                                let tableHtml = '';
+                                                if (data.content && typeof data.content === 'object') {
+                                                    if (Array.isArray(data.content)) {
+                                                        if (data.content.length > 0) {
+                                                            // Create table header
+                                                            const headers = Object.keys(data.content[0]);
+                                                            tableHtml = '<table class="results-table"><thead><tr>';
+                                                            headers.forEach(header => {
+                                                                tableHtml += `<th>${header}</th>`;
+                                                            });
+                                                            tableHtml += '</tr></thead><tbody>';
+                                                            
+                                                            // Create table rows
+                                                            data.content.forEach(row => {
+                                                                tableHtml += '<tr>';
+                                                                headers.forEach(header => {
+                                                                    tableHtml += `<td>${row[header] !== null ? row[header] : ''}</td>`;
+                                                                });
+                                                                tableHtml += '</tr>';
+                                                            });
+                                                            tableHtml += '</tbody></table>';
+                                                        } else {
+                                                            tableHtml = '<p>查询结果为空</p>';
+                                                        }
+                                                    } else if (typeof data.content === 'string') {
+                                                        // 处理单个值的情况
+                                                        tableHtml = `<p>${data.content}</p>`;
+                                                    } else {
+                                                        // 处理对象的情况
+                                                        tableHtml = '<table class="results-table"><tbody>';
+                                                        Object.entries(data.content).forEach(([key, value]) => {
+                                                            tableHtml += `<tr><td>${key}</td><td>${value !== null ? value : ''}</td></tr>`;
+                                                        });
+                                                        tableHtml += '</tbody></table>';
+                                                    }
+                                                } else {
+                                                    tableHtml = '<p>无查询结果</p>';
+                                                }
+                                                responseElements.resultsCode.innerHTML = tableHtml;
+                                                
+                                                // 图表视图
+                                                if (data.chart && responseElements.chartContainer) {
+                                                    // 检查数据是否适合生成图表
+                                                    const isValidChartData = Array.isArray(data.content) && 
+                                                        data.content.length > 0 && 
+                                                        typeof data.content[0] === 'object' &&
+                                                        Object.keys(data.content[0]).length > 1;
+
+                                                    // 获取图表部分的父元素（sql-section）
+                                                    const chartSection = responseElements.chartContainer.closest('.sql-section');
+                                                    
+                                                    if (isValidChartData) {
+                                                        // 如果数据有效，显示图表部分
+                                                        if (chartSection) {
+                                                            chartSection.style.display = 'block';
+                                                        }
+                                                        
+                                                        // 确保图表容器可见
+                                                        const chartContent = responseElements.chartContainer.closest('.sql-content');
+                                                        if (chartContent) {
+                                                            chartContent.classList.add('show');
+                                                        }
+                                                        
+                                                        // 等待DOM更新完成后初始化图表
+                                                        setTimeout(() => {
+                                                            const chart = echarts.init(responseElements.chartContainer);
+                                                            responseElements.chartContainer._echarts = chart;
+                                                            
+                                                            // 设置图表选项
+                                                            const chartOptions = JSON.parse(JSON.stringify(data.chart.options));
+                                                            
+                                                            // 添加自定义配色方案
+                                                            const customColors = ['#3b97ff', '#0ee0ff', '#7cde4c', '#ff8955', '#e7595c', '#a662e6', '#534c71', '#89c1ff', '#7ceeff', '#acf28a', '#ffbea1', '#fb9b9d', '#d4a5ff', '#a398d2'];
+                                                            chartOptions.color = customColors;
+                                                            
+                                                            // 为初始图表添加标签配置
+                                                            if (chartOptions.series) {
+                                                                chartOptions.series.forEach(series => {
+                                                                    series.label = {
+                                                                        show: true,
+                                                                        position: series.type === 'bar' ? 'top' : 'right',
+                                                                        formatter: function(params) {
+                                                                            return params.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                        }
+                                                                    };
+                                                                });
+                                                            }
+                                                            
+                                                            // 保存原始数据用于图表类型切换
+                                                            responseElements.chartContainer._chartData = {
+                                                                originalOptions: chartOptions,
+                                                                data: data.content
+                                                            };
+                                                            
+                                                            // 设置图表选项并初始化
+                                                            chart.setOption(chartOptions);
+                                                            
+                                                            // 设置图表类型选择器的默认值并添加事件监听
+                                                            const chartTypeTabs = responseElements.chartContainer.parentElement.querySelectorAll('.chart-type-tab');
+                                                            chartTypeTabs.forEach(tab => {
+                                                                tab.classList.remove('active');
+                                                                if (tab.dataset.type === (data.chart.type || 'bar')) {
+                                                                    tab.classList.add('active');
+                                                                }
+                                                                
+                                                                tab.addEventListener('click', function() {
+                                                                    // 更新标签页状态
+                                                                    chartTypeTabs.forEach(t => t.classList.remove('active'));
+                                                                    this.classList.add('active');
+                                                                    
+                                                                    const newType = this.dataset.type;
+                                                                    const chartContainer = responseElements.chartContainer;
+                                                                    const chartInstance = chartContainer._echarts;
+                                                                    const chartData = chartContainer._chartData;
+                                                                    
+                                                                    if (chartInstance && chartData) {
+                                                                        let newOptions = JSON.parse(JSON.stringify(chartData.originalOptions));
+                                                                        newOptions.color = customColors;
+                                                                        
+                                                                        // 更新图表类型
+                                                                        if (newType === 'pie-doughnut') {
+                                                                            // 转换为圆角环形图数据格式
+                                                                            const firstNumeric = Object.keys(chartData.data[0]).find(key => 
+                                                                                !isNaN(chartData.data[0][key]) && typeof chartData.data[0][key] !== 'boolean'
+                                                                            );
+                                                                            const firstCategory = Object.keys(chartData.data[0]).find(key => 
+                                                                                isNaN(chartData.data[0][key]) || typeof chartData.data[0][key] === 'boolean'
+                                                                            );
+                                                                            
+                                                                            if (firstNumeric && firstCategory) {
+                                                                                newOptions = {
+                                                                                    title: { 
+                                                                                        text: '',
+                                                                                        show: false
+                                                                                    },
+                                                                                    tooltip: { trigger: 'item' },
+                                                                                    legend: { 
+                                                                                        orient: 'horizontal', 
+                                                                                        bottom: 10,
+                                                                                        left: 'center'
+                                                                                    },
+                                                                                    color: customColors,
+                                                                                    toolbox: {
+                                                                                        feature: {
+                                                                                            saveAsImage: { show: true }
+                                                                                        },
+                                                                                        right: 10,
+                                                                                        top: 10
+                                                                                    },
+                                                                                    series: [{
+                                                                                        type: 'pie',
+                                                                                        radius: ['40%', '70%'],
+                                                                                        center: ['50%', '50%'],
+                                                                                        itemStyle: {
+                                                                                            borderRadius: 10,
+                                                                                            borderColor: '#fff',
+                                                                                            borderWidth: 2
+                                                                                        },
+                                                                                        label: {
+                                                                                            show: true,
+                                                                                            formatter: '{b}: {c} ({d}%)'
+                                                                                        },
+                                                                                        data: chartData.data.map(item => ({
+                                                                                            name: String(item[firstCategory]),
+                                                                                            value: Number(item[firstNumeric])
+                                                                                        }))
+                                                                                    }]
+                                                                                };
+                                                                            }
+                                                                        } else if (newType === 'area-stack') {
+                                                                            // 转换为堆叠面积图数据格式
+                                                                            const numericColumns = Object.keys(chartData.data[0]).filter(key => 
+                                                                                !isNaN(chartData.data[0][key]) && typeof chartData.data[0][key] !== 'boolean'
+                                                                            );
+                                                                            const categoryColumn = Object.keys(chartData.data[0]).find(key => 
+                                                                                isNaN(chartData.data[0][key]) || typeof chartData.data[0][key] === 'boolean'
+                                                                            );
+
+                                                                            if (categoryColumn && numericColumns.length > 0) {
+                                                                                newOptions = {
+                                                                                    title: { text: '' },
+                                                                                    tooltip: { 
+                                                                                        trigger: 'axis',
+                                                                                        axisPointer: {
+                                                                                            type: 'cross',
+                                                                                            label: {
+                                                                                                backgroundColor: '#6a7985'
+                                                                                            }
+                                                                                        }
+                                                                                    },
+                                                                                    color: customColors,
+                                                                                    legend: { data: numericColumns },
+                                                                                    toolbox: {
+                                                                                        feature: {
+                                                                                            saveAsImage: { show: true }
+                                                                                        }
+                                                                                    },
+                                                                                    grid: {
+                                                                                        left: '3%',
+                                                                                        right: '4%',
+                                                                                        bottom: '3%',
+                                                                                        containLabel: true
+                                                                                    },
+                                                                                    xAxis: {
+                                                                                        type: 'category',
+                                                                                        boundaryGap: false,
+                                                                                        data: chartData.data.map(item => String(item[categoryColumn]))
+                                                                                    },
+                                                                                    yAxis: { type: 'value' },
+                                                                                    series: numericColumns.map(column => ({
+                                                                                        name: column,
+                                                                                        type: 'line',
+                                                                                        stack: 'Total',
+                                                                                        smooth: true,
+                                                                                        label: {
+                                                                                            show: true,
+                                                                                            position: 'top',
+                                                                                            formatter: function(params) {
+                                                                                                return params.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                            }
+                                                                                        },
+                                                                                        areaStyle: {
+                                                                                            opacity: 0.8
+                                                                                        },
+                                                                                        emphasis: {
+                                                                                            focus: 'series'
+                                                                                        },
+                                                                                        data: chartData.data.map(item => Number(item[column]))
+                                                                                    }))
+                                                                                };
+                                                                            }
+                                                                        } else if (newType === 'heatmap-cartesian') {
+                                                                            // 转换为热力图数据格式
+                                                                            const numericColumns = Object.keys(chartData.data[0]).filter(key => 
+                                                                                !isNaN(chartData.data[0][key]) && typeof chartData.data[0][key] !== 'boolean'
+                                                                            );
+                                                                            const categoryColumn = Object.keys(chartData.data[0]).find(key => 
+                                                                                isNaN(chartData.data[0][key]) || typeof chartData.data[0][key] === 'boolean'
+                                                                            );
+
+                                                                            if (categoryColumn && numericColumns.length > 0) {
+                                                                                const categories = [...new Set(chartData.data.map(item => String(item[categoryColumn])))];
+                                                                                const heatmapData = [];
+                                                                                
+                                                                                categories.forEach((category, i) => {
+                                                                                    numericColumns.forEach((column, j) => {
+                                                                                        const value = chartData.data.find(item => String(item[categoryColumn]) === category)?.[column] || 0;
+                                                                                        heatmapData.push([j, i, value]);
+                                                                                    });
+                                                                                });
+
+                                                                                newOptions = {
+                                                                                    tooltip: {
+                                                                                        position: 'top',
+                                                                                        formatter: function(params) {
+                                                                                            return `${categories[params.value[1]]} - ${numericColumns[params.value[0]]}: ${params.value[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+                                                                                        }
+                                                                                    },
+                                                                                    grid: {
+                                                                                        top: '10%',
+                                                                                        right: '15%',
+                                                                                        bottom: '15%',
+                                                                                        left: '15%',
+                                                                                        containLabel: true
+                                                                                    },
+                                                                                    xAxis: {
+                                                                                        type: 'category',
+                                                                                        data: numericColumns,
+                                                                                        splitArea: {
+                                                                                            show: true
+                                                                                        }
+                                                                                    },
+                                                                                    yAxis: {
+                                                                                        type: 'category',
+                                                                                        data: categories,
+                                                                                        splitArea: {
+                                                                                            show: true
+                                                                                        }
+                                                                                    },
+                                                                                    visualMap: {
+                                                                                        min: 0,
+                                                                                        max: Math.max(...heatmapData.map(item => item[2])),
+                                                                                        calculable: true,
+                                                                                        orient: 'horizontal',
+                                                                                        left: 'center',
+                                                                                        bottom: '0%',
+                                                                                        color: ['#ff4500', '#ff8c00', '#ffd700', '#90ee90', '#00ced1']
+                                                                                    },
+                                                                                    series: [{
+                                                                                        type: 'heatmap',
+                                                                                        data: heatmapData,
+                                                                                        label: {
+                                                                                            show: true,
+                                                                                            formatter: function(params) {
+                                                                                                return params.value[2].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                            }
+                                                                                        },
+                                                                                        emphasis: {
+                                                                                            itemStyle: {
+                                                                                                shadowBlur: 10,
+                                                                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                                                            }
+                                                                                        }
+                                                                                    }]
+                                                                                };
+                                                                            }
+                                                                        } else if (newType === 'scatter') {
+                                                                            // 转换为散点图
+                                                                            newOptions.series.forEach(series => {
+                                                                                series.type = 'scatter';
+                                                                                series.symbolSize = 8;
+                                                                                series.label = {
+                                                                                    show: true,
+                                                                                    position: 'top',
+                                                                                    distance: 10,
+                                                                                    formatter: function(params) {
+                                                                                        if (Array.isArray(params.value)) {
+                                                                                            return params.value[1].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                        }
+                                                                                        return params.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                    }
+                                                                                };
+                                                                                series.itemStyle = {
+                                                                                    opacity: 0.8
+                                                                                };
+                                                                            });
+                                                                        } else if (newType === 'line-smooth') {
+                                                                            // 转换为平滑折线图
+                                                                            newOptions.series.forEach(series => {
+                                                                                series.type = 'line';
+                                                                                series.smooth = true;
+                                                                                series.symbolSize = 8;
+                                                                                series.stack = undefined;
+                                                                                series.label = {
+                                                                                    show: true,
+                                                                                    position: 'top',
+                                                                                    formatter: function(params) {
+                                                                                        return params.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                    }
+                                                                                };
+                                                                            });
+                                                                        } else if (newType === 'bar-horizontal') {
+                                                                            // 转换为条形图（横向柱状图）
+                                                                            const temp = {...newOptions.xAxis};
+                                                                            newOptions.xAxis = {...newOptions.yAxis};
+                                                                            newOptions.yAxis = {...temp};
+                                                                            
+                                                                            newOptions.xAxis.type = 'value';
+                                                                            newOptions.yAxis.type = 'category';
+                                                                            newOptions.yAxis.inverse = true;
+                                                                            
+                                                                            if (newOptions.yAxis.data && newOptions.series[0].data) {
+                                                                                const sortedData = newOptions.series[0].data
+                                                                                    .map((value, index) => ({
+                                                                                        value: Number(value),
+                                                                                        category: newOptions.yAxis.data[index]
+                                                                                    }))
+                                                                                    .sort((a, b) => b.value - a.value);
+                                                                            
+                                                                                newOptions.yAxis.data = sortedData.map(item => item.category);
+                                                                                newOptions.series.forEach(series => {
+                                                                                    const seriesData = series.data.map((value, index) => ({
+                                                                                        value: Number(value),
+                                                                                        category: newOptions.yAxis.data[index]
+                                                                                    }))
+                                                                                    .sort((a, b) => b.value - a.value);
+                                                                                    series.data = seriesData.map(item => item.value);
+                                                                                });
+                                                                            }
+                                                                            
+                                                                            newOptions.series.forEach(series => {
+                                                                                series.type = 'bar';
+                                                                                series.label = {
+                                                                                    show: true,
+                                                                                    position: 'right',
+                                                                                    formatter: function(params) {
+                                                                                        return params.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                    }
+                                                                                };
+                                                                            });
+                                                                        } else if (newType === 'bar') {
+                                                                            // 转换为柱状图
+                                                                            newOptions.series.forEach(series => {
+                                                                                series.type = 'bar';
+                                                                                series.label = {
+                                                                                    show: true,
+                                                                                    position: 'top',
+                                                                                    formatter: function(params) {
+                                                                                        return params.value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                                                                    }
+                                                                                };
+                                                                            });
+                                                                        }
+                                                                        
+                                                                        // 添加工具箱配置
+                                                                        newOptions.toolbox = {
+                                                                            feature: {
+                                                                                saveAsImage: { show: true }
+                                                                            }
+                                                                        };
+                                                                        
+                                                                        // 清除旧的图表实例
+                                                                        chartInstance.dispose();
+                                                                        // 重新初始化图表
+                                                                        const newChart = echarts.init(responseElements.chartContainer);
+                                                                        responseElements.chartContainer._echarts = newChart;
+                                                                        newChart.setOption(newOptions);
+                                                                        
+                                                                        // 自动调整大小
+                                                                        window.addEventListener('resize', () => {
+                                                                            if (newChart && !newChart.isDisposed()) {
+                                                                                newChart.resize();
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                });
+                                                            });
+                                                        }, 100);
+                                                    } else {
+                                                        // 如果数据无效，隐藏整个图表部分
+                                                        if (chartSection) {
+                                                            chartSection.style.display = 'none';
+                                                        }
+                                                    }
+                                                } else {
+                                                    // 如果没有图表数据，隐藏整个图表部分
+                                                    const chartSection = responseElements.chartContainer.closest('.sql-section');
+                                                    if (chartSection) {
+                                                        chartSection.style.display = 'none';
+                                                    }
+                                                }
+                                                
+                                                const resultsContent = responseElements.resultsCode.parentElement;
+                                                if (resultsContent) {
+                                                    resultsContent.classList.add('show');
+                                                    const arrow = resultsContent.previousElementSibling?.querySelector('.arrow');
+                                                    if (arrow) arrow.textContent = '▼';
+                                                }
+                                            }
+                                            break;
+                                        case 'summary':
+                                            if (responseElements.summary && data.content) {
+                                                const parsedContent = marked.parse(data.content);
+                                                responseElements.summary.innerHTML = parsedContent;
+                                                if (responseElements.typingIndicator) {
+                                                    responseElements.typingIndicator.style.display = 'none';
+                                                }
+                                            }
+                                            break;
+                                        default:
+                                            if (data.error && responseElements.container) {
+                                                responseElements.container.innerHTML = `
+                                                    <div class="message-content" style="color: #dc3545;">
+                                                        <strong>错误：</strong>${data.error}
+                                                    </div>`;
+                                                if (responseElements.typingIndicator) {
+                                                    responseElements.typingIndicator.style.display = 'none';
+                                                }
+                                            }
+                                    }
+                                    
+                                    const chatMessages = document.querySelector('.chat-messages');
+                                    if (chatMessages) {
+                                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e);
+                                // 如果解析错误，显示错误消息
+                                addMessage({ error: '解析响应数据时出错' });
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage({ error: '抱歉，发生了错误，请稍后重试。' });
+            } finally {
+                userInput.disabled = false;
+                sendButton.disabled = false;
+                userInput.focus();
+                
+                // 移除加载指示器
+                loadingMessage.remove();
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        clearButton.addEventListener('click', () => {
+            const welcomeMessage = chatMessages.firstElementChild;
+            chatMessages.innerHTML = '';
+            chatMessages.appendChild(welcomeMessage);
+        });
+    </script>
+</body>
+</html> 

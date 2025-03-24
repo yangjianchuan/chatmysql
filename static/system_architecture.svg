@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="900" xmlns="http://www.w3.org/2000/svg">
+    <!-- 样式定义 -->
+    <defs>
+        <style>
+            /* 基础样式 */
+            .container { fill: #f8f9fa; stroke: #495057; stroke-width: 2; rx: 10; ry: 10; }
+            .component { fill: #ffffff; stroke: #495057; stroke-width: 2; rx: 6; ry: 6; }
+            .database { fill: #e9ecef; stroke: #495057; stroke-width: 2; }
+            .api { fill: #e7f5ff; stroke: #1971c2; stroke-width: 2; rx: 6; ry: 6; }
+            .file { fill: #fff9db; stroke: #f08c00; stroke-width: 2; }
+            .process { fill: #f1f3f5; stroke: #495057; stroke-width: 2; }
+            .user { fill: #f8f9fa; stroke: #495057; stroke-width: 2; }
+            
+            /* 文本样式 */
+            .title { font-family: 'Arial', sans-serif; font-size: 24px; font-weight: bold; fill: #212529; text-anchor: middle; }
+            .subtitle { font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; fill: #343a40; text-anchor: middle; }
+            .label { font-family: 'Arial', sans-serif; font-size: 14px; fill: #343a40; text-anchor: middle; }
+            .small-text { font-family: 'Arial', sans-serif; font-size: 12px; fill: #495057; text-anchor: middle; }
+            .tech-label { font-family: 'Arial', sans-serif; font-size: 12px; fill: #868e96; text-anchor: middle; font-style: italic; }
+            
+            /* 箭头样式 */
+            .arrow { fill: none; stroke: #adb5bd; stroke-width: 2; marker-end: url(#arrowhead); }
+            .data-flow { fill: none; stroke: #1971c2; stroke-width: 2; stroke-dasharray: 5,5; marker-end: url(#data-arrowhead); }
+            .request-flow { fill: none; stroke: #2b8a3e; stroke-width: 2; marker-end: url(#request-arrowhead); }
+            .response-flow { fill: none; stroke: #e67700; stroke-width: 2; marker-end: url(#response-arrowhead); }
+            
+            /* 图标样式 */
+            .icon { font-family: 'Arial', sans-serif; font-size: 20px; fill: #495057; text-anchor: middle; }
+        </style>
+        
+        <!-- 箭头标记 -->
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#adb5bd"/>
+        </marker>
+        <marker id="data-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1971c2"/>
+        </marker>
+        <marker id="request-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#2b8a3e"/>
+        </marker>
+        <marker id="response-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#e67700"/>
+        </marker>
+    </defs>
+    
+    <!-- 标题 -->
+    <text x="600" y="40" class="title">ChatMySQL 系统架构</text>
+    
+    <!-- 用户和浏览器 -->
+    <rect x="50" y="100" width="200" height="100" class="user"/>
+    <text x="150" y="140" class="subtitle">用户</text>
+    <text x="150" y="170" class="small-text">网页浏览器</text>
+    
+    <!-- 前端容器 -->
+    <rect x="50" y="250" width="200" height="150" class="container"/>
+    <text x="150" y="280" class="subtitle">前端</text>
+    <rect x="75" y="300" width="150" height="80" class="component"/>
+    <text x="150" y="330" class="label">网页界面</text>
+    <text x="150" y="350" class="tech-label">HTML, JavaScript</text>
+    <text x="150" y="370" class="small-text">Markdown 渲染</text>
+    
+    <!-- 后端容器 -->
+    <rect x="350" y="100" width="500" height="500" class="container"/>
+    <text x="600" y="130" class="subtitle">后端 (Flask 应用)</text>
+    
+    <!-- API 端点 -->
+    <rect x="380" y="160" width="440" height="80" class="api"/>
+    <text x="600" y="190" class="label">API 端点</text>
+    <text x="480" y="220" class="small-text">/api/chat (POST)</text>
+    <text x="720" y="220" class="small-text">/api/env-config (GET)</text>
+    
+    <!-- 核心处理组件 -->
+    <rect x="380" y="260" width="200" height="100" class="component"/>
+    <text x="480" y="290" class="label">查询处理器</text>
+    <text x="480" y="310" class="small-text">自然语言 → SQL</text>
+    <text x="480" y="330" class="tech-label">OpenAI 集成</text>
+    
+    <rect x="620" y="260" width="200" height="100" class="component"/>
+    <text x="720" y="290" class="label">结果总结器</text>
+    <text x="720" y="310" class="small-text">SQL结果 → 摘要</text>
+    <text x="720" y="330" class="tech-label">OpenAI 集成</text>
+    
+    <rect x="380" y="380" width="200" height="100" class="component"/>
+    <text x="480" y="410" class="label">SQL 执行器</text>
+    <text x="480" y="430" class="small-text">查询执行</text>
+    <text x="480" y="450" class="tech-label">mysql-connector-python</text>
+    
+    <rect x="620" y="380" width="200" height="100" class="component"/>
+    <text x="720" y="410" class="label">响应生成器</text>
+    <text x="720" y="430" class="small-text">流式处理</text>
+    <text x="720" y="450" class="tech-label">服务器发送事件</text>
+    
+    <!-- 配置 -->
+    <rect x="380" y="500" width="440" height="80" class="component"/>
+    <text x="600" y="530" class="label">配置管理</text>
+    <text x="600" y="550" class="small-text">环境变量, dotenv</text>
+    
+    <!-- 数据库 -->
+    <ellipse cx="600" cy="700" rx="150" ry="70" class="database"/>
+    <ellipse cx="600" cy="680" rx="150" ry="10" class="database"/>
+    <text x="600" y="710" class="subtitle">MySQL 数据库</text>
+    <text x="600" y="730" class="small-text">contracts 表</text>
+    <text x="600" y="750" class="tech-label">MySQL 8.4.3</text>
+    
+    <!-- 外部服务 -->
+    <rect x="950" y="100" width="200" height="200" class="container"/>
+    <text x="1050" y="130" class="subtitle">OpenAI 服务</text>
+    
+    <rect x="975" y="160" width="150" height="60" class="api"/>
+    <text x="1050" y="190" class="label">SQL 生成 API</text>
+    <text x="1050" y="210" class="tech-label">函数调用</text>
+    
+    <rect x="975" y="230" width="150" height="60" class="api"/>
+    <text x="1050" y="260" class="label">摘要 API</text>
+    <text x="1050" y="280" class="tech-label">流式响应</text>
+    
+    <!-- 配置文件 -->
+    <rect x="950" y="350" width="200" height="250" class="container"/>
+    <text x="1050" y="380" class="subtitle">配置文件</text>
+    
+    <rect x="975" y="400" width="150" height="40" class="file"/>
+    <text x="1050" y="425" class="label">.env</text>
+    
+    <rect x="975" y="450" width="150" height="40" class="file"/>
+    <text x="1050" y="475" class="label">databaseTableSchema.md</text>
+    
+    <rect x="975" y="500" width="150" height="40" class="file"/>
+    <text x="1050" y="525" class="label">training_data.jsonl</text>
+    
+    <rect x="975" y="550" width="150" height="40" class="file"/>
+    <text x="1050" y="575" class="label">requirements.txt</text>
+    
+    <!-- 数据流图 -->
+    <!-- 用户到前端 -->
+    <path d="M150 200 L150 250" class="request-flow"/>
+    <text x="170" y="225" class="small-text">1. 查询</text>
+    
+    <!-- 前端到后端 -->
+    <path d="M250 325 L350 325" class="request-flow"/>
+    <text x="300" y="315" class="small-text">2. HTTP请求</text>
+    
+    <!-- 后端到OpenAI SQL生成 -->
+    <path d="M580 260 L580 200 L950 200" class="request-flow"/>
+    <text x="750" y="180" class="small-text">3. 自然语言查询</text>
+    
+    <!-- OpenAI SQL生成到后端 -->
+    <path d="M975 190 L650 190 L650 260" class="response-flow"/>
+    <text x="800" y="170" class="small-text">4. 生成的SQL</text>
+    
+    <!-- 后端到数据库 -->
+    <path d="M480 480 L480 650 L550 700" class="request-flow"/>
+    <text x="450" y="570" class="small-text">5. 执行SQL</text>
+    
+    <!-- 数据库到后端 -->
+    <path d="M650 700 L720 650 L720 480" class="response-flow"/>
+    <text x="750" y="570" class="small-text">6. 查询结果</text>
+    
+    <!-- 后端到OpenAI摘要 -->
+    <path d="M820 430 L950 260" class="request-flow"/>
+    <text x="870" y="330" class="small-text">7. 结果总结请求</text>
+    
+    <!-- OpenAI摘要到后端 -->
+    <path d="M975 260 L850 380" class="response-flow"/>
+    <text x="900" y="310" class="small-text">8. 自然语言摘要</text>
+    
+    <!-- 后端到前端 -->
+    <path d="M350 375 L250 375" class="response-flow"/>
+    <text x="300" y="395" class="small-text">9. 流式响应</text>
+    
+    <!-- 前端到用户 -->
+    <path d="M150 250 L150 200" class="response-flow"/>
+    <text x="130" y="225" class="small-text">10. 显示</text>
+    
+    <!-- 配置文件到后端 -->
+    <path d="M975 425 L850 425 L850 500" class="data-flow"/>
+    <path d="M975 475 L830 475 L830 500" class="data-flow"/>
+    <path d="M975 525 L810 525 L810 500" class="data-flow"/>
+    
+    <!-- 图例 -->
+    <rect x="50" y="800" width="1100" height="80" class="container"/>
+    <text x="600" y="825" class="subtitle">图例</text>
+    
+    <line x1="100" y1="850" x2="150" y2="850" class="request-flow"/>
+    <text x="200" y="855" class="small-text" style="text-anchor: start">请求流</text>
+    
+    <line x1="300" y1="850" x2="350" y2="850" class="response-flow"/>
+    <text x="400" y="855" class="small-text" style="text-anchor: start">响应流</text>
+    
+    <line x1="500" y1="850" x2="550" y2="850" class="data-flow"/>
+    <text x="600" y="855" class="small-text" style="text-anchor: start">配置/数据流</text>
+    
+    <rect x="700" y="840" width="20" height="20" class="component"/>
+    <text x="750" y="855" class="small-text" style="text-anchor: start">组件</text>
+    
+    <rect x="800" y="840" width="20" height="20" class="api"/>
+    <text x="850" y="855" class="small-text" style="text-anchor: start">API服务</text>
+    
+    <rect x="900" y="840" width="20" height="20" class="file"/>
+    <text x="950" y="855" class="small-text" style="text-anchor: start">配置文件</text>
+    
+    <ellipse cx="1020" cy="850" rx="15" ry="10" class="database"/>
+    <text x="1070" y="855" class="small-text" style="text-anchor: start">数据库</text>
+</svg> 

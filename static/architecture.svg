@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1000" height="800" xmlns="http://www.w3.org/2000/svg">
+    <!-- 样式定义 -->
+    <defs>
+        <style>
+            .process { fill: #f0f0f0; stroke: #333; stroke-width: 2; }
+            .start-end { fill: #e8f5e9; stroke: #333; stroke-width: 2; }
+            .decision { fill: #fff3e0; stroke: #333; stroke-width: 2; }
+            .data { fill: #e1f5fe; stroke: #333; stroke-width: 2; }
+            .text { font-family: Arial; font-size: 14px; fill: #333; }
+            .small-text { font-family: Arial; font-size: 12px; fill: #666; }
+            .arrow { fill: none; stroke: #666; stroke-width: 2; marker-end: url(#arrowhead); }
+        </style>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+        </marker>
+    </defs>
+
+    <!-- 启动流程 -->
+    <rect x="400" y="20" width="200" height="50" rx="25" class="start-end"/>
+    <text x="470" y="50" class="text">系统启动</text>
+
+    <!-- 加载配置 -->
+    <rect x="400" y="100" width="200" height="60" class="process"/>
+    <text x="430" y="135" class="text">加载配置和数据</text>
+    <text x="420" y="155" class="small-text">.env, Schema, Training</text>
+
+    <!-- 等待用户输入 -->
+    <rect x="400" y="190" width="200" height="50" class="process"/>
+    <text x="450" y="220" class="text">等待用户输入</text>
+
+    <!-- 接收自然语言查询 -->
+    <path d="M500 270 L600 320 L500 370 L400 320 Z" class="decision"/>
+    <text x="450" y="315" class="text">收到查询请求?</text>
+
+    <!-- 生成SQL查询 -->
+    <rect x="400" y="400" width="200" height="50" class="process"/>
+    <text x="440" y="430" class="text">调用OpenAI生成SQL</text>
+
+    <!-- 执行SQL查询 -->
+    <rect x="400" y="480" width="200" height="50" class="process"/>
+    <text x="450" y="510" class="text">执行SQL查询</text>
+
+    <!-- 查询成功判断 -->
+    <path d="M500 560 L600 610 L500 660 L400 610 Z" class="decision"/>
+    <text x="450" y="605" class="text">查询成功?</text>
+
+    <!-- 生成结果总结 -->
+    <rect x="400" y="690" width="200" height="50" class="process"/>
+    <text x="420" y="720" class="text">调用OpenAI总结结果</text>
+
+    <!-- 返回错误信息 -->
+    <rect x="700" y="585" width="200" height="50" class="process"/>
+    <text x="750" y="615" class="text">返回错误信息</text>
+
+    <!-- 返回结果 -->
+    <rect x="400" y="770" width="200" height="50" rx="25" class="start-end"/>
+    <text x="470" y="800" class="text">返回结果</text>
+
+    <!-- 连接线 -->
+    <!-- 主流程连接 -->
+    <path d="M500 70 L500 100" class="arrow"/>
+    <path d="M500 160 L500 190" class="arrow"/>
+    <path d="M500 240 L500 270" class="arrow"/>
+    <path d="M500 370 L500 400" class="arrow"/>
+    <text x="510" y="385" class="small-text">是</text>
+    <path d="M500 450 L500 480" class="arrow"/>
+    <path d="M500 530 L500 560" class="arrow"/>
+    <path d="M500 660 L500 690" class="arrow"/>
+    <text x="510" y="675" class="small-text">是</text>
+    <path d="M500 740 L500 770" class="arrow"/>
+
+    <!-- 分支连接 -->
+    <path d="M600 320 L650 320 L650 220 L600 220" class="arrow"/>
+    <text x="610" y="310" class="small-text">否</text>
+
+    <path d="M600 610 L700 610" class="arrow"/>
+    <text x="610" y="600" class="small-text">否</text>
+    <path d="M800 635 L800 795 L600 795" class="arrow"/>
+
+    <!-- 数据流说明 -->
+    <rect x="50" y="100" width="300" height="200" rx="5" class="data"/>
+    <text x="70" y="130" class="text" style="font-weight: bold">配置和数据文件：</text>
+    <text x="70" y="160" class="text">1. .env：环境配置</text>
+    <text x="70" y="190" class="text">2. databaseTableSchema.md：</text>
+    <text x="90" y="210" class="small-text">数据库表结构和系统提示词</text>
+    <text x="70" y="240" class="text">3. training_data.jsonl：</text>
+    <text x="90" y="260" class="small-text">历史对话训练数据</text>
+
+    <!-- API调用说明 -->
+    <rect x="50" y="350" width="300" height="150" rx="5" class="data"/>
+    <text x="70" y="380" class="text" style="font-weight: bold">OpenAI API调用：</text>
+    <text x="70" y="410" class="text">1. SQL生成服务</text>
+    <text x="90" y="430" class="small-text">将自然语言转换为SQL查询</text>
+    <text x="70" y="460" class="text">2. 结果总结服务</text>
+    <text x="90" y="480" class="small-text">将查询结果转换为自然语言</text>
+</svg> 
