@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>数据问答系统</title>
     <script src="static/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="static/echarts.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -54,6 +54,7 @@
             gap: 10px;
             height: 100%;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .sidebar-title {
@@ -70,6 +71,7 @@
             flex-direction: column;
             gap: 8px;
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .sample-question {
@@ -84,6 +86,9 @@
             text-align: left;
             line-height: 1.4;
             word-wrap: break-word;
+            white-space: normal;
+            word-break: break-all;
+            overflow-x: hidden;
         }
 
         .sample-question:hover {
@@ -111,11 +116,12 @@
         .chat-messages {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 10px 20px;
         }
 
         .message {
-            margin-bottom: 20px;
+            margin-bottom: 5px;
             max-width: 80%;
             display: flex;
             flex-direction: column;
@@ -129,7 +135,7 @@
         }
 
         .message-content {
-            padding: 10px 14px;
+            padding: 6px 10px;
             border-radius: 10px;
             display: inline-block;
             width: fit-content;
@@ -227,9 +233,9 @@
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
 
         .sql-section {
-            margin: 10px 0;
+            margin: 1px 0;
             border: 1px solid #ddd;
-            border-radius: 5px;
+            border-radius: 1px;
             overflow: hidden;
         }
 
@@ -248,7 +254,7 @@
 
         .sql-content {
             display: none;
-            padding: 10px;
+            padding: 8px;
             background: #f8f9fa;
             border-top: 1px solid #ddd;
             width: 100%;
@@ -557,7 +563,7 @@
             <div class="chat-messages" id="chatMessages">
                 <div class="message assistant">
                     <div class="message-content">
-                        您好！我是您的数据助手，请问有什么可以帮您查询的吗？
+                        我可以查询签约表的数据，表共有5列：公司、日期、签约套数（套）、签约面积（㎡）、签约金额（元），AI模型使用的是公司部署的模型qwen2.5:32b
                     </div>
                 </div>
                 <div class="typing-indicator" id="typingIndicator">
@@ -567,7 +573,7 @@
                 </div>
             </div>
             <div class="chat-input">
-                <input type="text" id="userInput" placeholder="请输入您的问题..." />
+                <input type="text" id="userInput" placeholder="请输入您的问题，或者在右侧选择示例问题" />
                 <button id="sendButton">发送</button>
             </div>
         </div>
@@ -1425,4 +1431,4 @@
         });
     </script>
 </body>
-</html> 
+</html>

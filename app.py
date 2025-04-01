@@ -165,17 +165,28 @@ def execute_sql(sql):
             
         # Handle minus operator separately, excluding date patterns
         def handle_minus(match):
-            # Check if the minus is part of a date pattern (YYYY-MM-DD)
-            before = match.string[max(0, match.start() - 10):match.start()]
-            after = match.string[match.end():min(len(match.string), match.end() + 10)]
+            # Get context before and after the minus sign
+            before = match.string[max(0, match.start() - 20):match.start()]
+            after = match.string[match.end():min(len(match.string), match.end() + 20)]
             
-            # If it's part of a date pattern (inside quotes), don't add spaces
-            if (("'" in before or '"' in before) and 
-                ("'" in after or '"' in after) and 
-                re.search(r'\d{4}-\d{2}-\d{2}', before + '-' + after)):
+            # Check if we're inside quotes
+            single_quotes_before = before.count("'") % 2 == 1
+            double_quotes_before = before.count('"') % 2 == 1
+            
+            # If we're inside quotes, don't add spaces
+            if single_quotes_before or double_quotes_before:
                 return '-'
-            # If it's a minus operator, add spaces
-            return ' - '
+                
+            # Check if it's part of a number (negative number)
+            if re.search(r'[\d.)]$', before) and re.search(r'^\d', after):
+                return ' - '  # Arithmetic operation
+            
+            # Check if it's between numbers or identifiers
+            if re.search(r'[a-zA-Z0-9_)]$', before) and re.search(r'^[a-zA-Z0-9_(]', after):
+                return ' - '  # Likely an arithmetic operation
+                
+            # Default case - don't add spaces
+            return '-'
             
         cleaned_sql = re.sub(r'-', handle_minus, cleaned_sql)
         
@@ -388,8 +399,8 @@ def generate_response(user_query):
                         training_data = json.loads(line)
                         # 将训练数据中的消息添加到messages列表
                         messages.extend(training_data.get("messages", []))
-            messages.append({"role": "user", "content": "The above dialogue is training data, please answer the user's question according to the training data."})
-            messages.append({"role": "assistant", "content": "OK, please start asking."})
+            messages.append({"role": "user", "content": "后续的问题请参考我们之前的聊天内容。"})
+            messages.append({"role": "assistant", "content": "好的，请继续提问。"})
         except Exception as e:
             print(f"Warning: Could not load training data: {str(e)}")
     
@@ -424,7 +435,7 @@ def generate_response(user_query):
             tools=tools,
             tool_choice={"type": "function", "function": {"name": "execute_sql"}},
             stream=True,
-            temperature=0.6 # Add temperature=0.6 for SQL generation
+            temperature=0 # Add temperature=0 for SQL generation
         )
 
         # Initialize variables to collect the streaming response

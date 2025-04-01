@@ -25,7 +25,7 @@ ChatMySQL 是一个基于自然语言的 MySQL 数据库查询系统，它能让
 - 数据库：MySQL 8.4.3
 - 前端：HTML + JavaScript
 - 图表：ECharts 5.4.3
-- AI 模型：OpenAI API
+- AI 模型：兼容 OpenAI 格式的 API，例如 qwen2.5:32b
 - 跨域支持：Flask-CORS
 
 ## 系统要求
