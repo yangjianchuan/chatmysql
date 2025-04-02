@@ -158,6 +158,17 @@ def execute_sql(sql):
         # Add spaces before and after keywords
         cleaned_sql = re.sub(pattern, r' \1 ', cleaned_sql, flags=re.IGNORECASE)
         
+        # 在处理减号运算符之前，先保护日期字符串中的连字符
+        # 找出所有日期字符串模式并临时替换
+        def protect_date_hyphens(match):
+            date_str = match.group(1)
+            # 将日期字符串中的连字符替换为特殊标记
+            protected_date = date_str.replace('-', '§§§')
+            return f"'{protected_date}'"
+            
+        # 保护日期字符串中的连字符，匹配 'YYYY-MM-DD' 格式
+        cleaned_sql = re.sub(r"'(\d{4}-\d{2}-\d{2})'", protect_date_hyphens, cleaned_sql)
+        
         # Add spaces around operators
         operators = [r'=', r'<', r'>', r'<=', r'>=', r'<>', r'\+', r'\*', r'/']  # Removed '-' from operators list
         for op in operators:
@@ -175,7 +186,7 @@ def execute_sql(sql):
             
             # If we're inside quotes, don't add spaces
             if single_quotes_before or double_quotes_before:
-                return '-'
+                return '-'  # 在引号内的减号不添加空格
                 
             # Check if it's part of a number (negative number)
             if re.search(r'[\d.)]$', before) and re.search(r'^\d', after):
@@ -189,6 +200,9 @@ def execute_sql(sql):
             return '-'
             
         cleaned_sql = re.sub(r'-', handle_minus, cleaned_sql)
+        
+        # 恢复被保护的日期连字符
+        cleaned_sql = cleaned_sql.replace('§§§', '-')
         
         # Fix multiple spaces
         cleaned_sql = re.sub(r'\s+', ' ', cleaned_sql)
@@ -497,7 +511,7 @@ def generate_response(user_query):
 
                 # Continue with summary generation
                 summary_messages =[]
-                summary_messages.append({"role": "system", "content": f"今天的日期是 {current_date}"})
+                # summary_messages.append({"role": "system", "content": f"今天的日期是 {current_date}"})
                 summary_messages.append({"role": "user", "content": user_query})          
                 summary_messages.append({
                     "role": "assistant",
@@ -505,7 +519,7 @@ def generate_response(user_query):
                 })               
 
                 # Get summary prompt from environment variable
-                summary_prompt = os.getenv('SUMMARY_PROMPT', '一句话回答我的问题。数字的小数位数应该基于查询结果，例如使用这种格式：1,000,000')
+                summary_prompt = os.getenv('SUMMARY_PROMPT', '请根据查询结果直接回答用户问题，使用简洁明了的语言。对于数值型结果，保留适当小数位数并使用合适的格式（如：313.07万元/套、1,000,000万元）。不要重复用户的问题，直接给出答案。')
                 summary_messages.append({"role": "user", "content": summary_prompt})
                 
                 # 打印出summary_messages
@@ -592,4 +606,4 @@ def favicon():
     return '', 204  # No content
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5000)
