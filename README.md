@@ -22,7 +22,7 @@ ChatMySQL 是一个基于自然语言的 MySQL 数据库查询系统，它能让
 ## 技术栈
 
 - 后端：Python + Flask
-- 数据库：MySQL 8.4.3
+- 数据库：MySQL 8
 - 前端：HTML + JavaScript
 - 图表：ECharts 5.4.3
 - AI 模型：兼容 OpenAI 格式的 API，例如 qwen2.5:32b
@@ -111,7 +111,7 @@ python app.py
 
 1. 克隆项目并进入目录
 ```bash
-git clone [项目地址]
+git clone https://github.com/yangjianchuan/chatmysql.git
 cd chatmysql
 ```
 
@@ -207,50 +207,10 @@ ChatMySQL 应用使用 `.env` 文件来配置系统的各项参数。以下是�
 - **LOAD_TRAINING_DATA**: 是否加载训练数据作为上下文，值为 "是" 或 "否"。当设置为 "是" 时，系统会从 training_data.jsonl 文件中加载预定义的问答对，用于提高自然语言到 SQL 的转换准确性。
 
 ### 结果总结配置
-- **SUMMARY_PROMPT**: 用于指导 AI 模型如何总结查询结果的提示词。默认值为：
-  ```
-  Please reply in Simplified Chinese, summarize these query results in one sentence
-  ```
+- **SUMMARY_PROMPT**: 用于指导 AI 模型如何总结查询结果的提示词。
 
 ### 配置示例
-以下是一个完整的 `.env` 文件示例：
-
-```
-# OpenAI Configuration
-OPENAI_API_KEY=sk-your_api_key_here
-OPENAI_BASE_URL=https://api.deepseek.com/v1
-OPENAI_MODEL=deepseek-chat
-
-# SQL Generation Model Configuration
-SQL_API_KEY=sk-your_sql_api_key_here
-SQL_BASE_URL=hhttps://api.deepseek.com/v1
-SQL_MODEL=deepseek-chat
-
-# Summary Model Configuration
-SUMMARY_API_KEY=sk-your_summary_api_key_here
-SUMMARY_BASE_URL=https://api.deepseek.com/v1
-SUMMARY_MODEL=deepseek-chat
-
-# MySQL Configuration
-MYSQL_USER=your_mysql_username
-MYSQL_PASSWORD=your_mysql_password
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_DATABASE=your_database_name
-MYSQL_RAISE_ON_WARNINGS=True
-MYSQL_AUTH_PLUGIN=mysql_native_password
-MYSQL_CONNECTION_TIMEOUT=10
-
-# Display Configuration
-SHOW_SQL_QUERY=是
-SHOW_QUERY_RESULT=是
-
-# Training Data Configuration
-LOAD_TRAINING_DATA=是
-
-# Summary Configuration
-SUMMARY_PROMPT=请用简体中文回复，用一句话总结这些查询结果，并严格还原查询结果中的数字，不要编造数据。数字的小数位数应该基于查询结果，例如使用这种格式：1,000,000
-```
+请参考完整的示例 `.env.example` ：
 
 ### 注意事项
 1. 所有敏感信息（如 API 密钥和数据库密码）应妥善保管，不要将包含真实凭据的 `.env` 文件提交到版本控制系统。
@@ -278,7 +238,7 @@ SUMMARY_PROMPT=请用简体中文回复，用一句话总结这些查询结果�
 - fdate：签约日期
 - SIGNED_SETS：签约套数
 - SIGNED_AREA：签约面积
-- SIGNED_AMOUNT：签约金额（单位：万元）
+- SIGNED_AMOUNT：签约金额
 
 ## 安全特性
 
