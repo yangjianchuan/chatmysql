@@ -10,6 +10,8 @@
             .decision { fill: #fce4ec; stroke: #d81b60; stroke-width: 1.5; }
             .api { fill: #e8eaf6; stroke: #3f51b5; stroke-width: 1.5; rx: 5; ry: 5; }
             .database { fill: #e0f7fa; stroke: #0097a7; stroke-width: 1.5; rx: 5; ry: 5; }
+            .frontend { fill: #fff8e1; stroke: #ffa000; stroke-width: 1.5; rx: 5; ry: 5; }
+            .backend { fill: #f3e5f5; stroke: #7b1fa2; stroke-width: 1.5; rx: 5; ry: 5; }
             .title { font-family: Arial; font-size: 24px; font-weight: bold; fill: #212121; }
             .subtitle { font-family: Arial; font-size: 18px; font-weight: bold; fill: #424242; }
             .text { font-family: Arial; font-size: 14px; fill: #212121; }
@@ -18,6 +20,8 @@
             .arrow { fill: none; stroke: #757575; stroke-width: 1.5; marker-end: url(#arrowhead); }
             .dashed-arrow { fill: none; stroke: #757575; stroke-width: 1.5; stroke-dasharray: 5,3; marker-end: url(#arrowhead); }
             .highlight { font-weight: bold; fill: #d32f2f; }
+            .frontend-text { fill: #ffa000; font-weight: bold; }
+            .backend-text { fill: #7b1fa2; font-weight: bold; }
         </style>
         <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" fill="#757575"/>
@@ -26,215 +30,77 @@
 
     <!-- 标题 -->
     <text x="600" y="40" class="title" text-anchor="middle">ChatMySQL 应用流程图</text>
-    <text x="600" y="70" class="subtitle" text-anchor="middle">app.py 核心处理流程</text>
+    <text x="600" y="70" class="subtitle" text-anchor="middle">前后端交互流程</text>
 
-    <!-- 系统初始化部分 -->
-    <rect x="50" y="100" width="1100" height="200" class="module" opacity="0.3"/>
-    <text x="70" y="130" class="subtitle">系统初始化</text>
+    <!-- 前端模块 -->
+    <rect x="50" y="100" width="500" height="400" class="frontend" opacity="0.2"/>
+    <text x="70" y="130" class="subtitle frontend-text">前端模块 (static/index.html)</text>
     
-    <!-- 环境配置加载 -->
-    <rect x="100" y="160" width="200" height="100" class="function"/>
-    <text x="200" y="185" class="text" text-anchor="middle">环境配置加载</text>
-    <text x="200" y="210" class="small-text" text-anchor="middle">load_dotenv()</text>
-    <text x="200" y="230" class="small-text" text-anchor="middle">.env 文件</text>
+    <!-- 图表初始化 -->
+    <rect x="100" y="160" width="200" height="80" class="frontend"/>
+    <text x="200" y="185" class="text" text-anchor="middle">图表初始化</text>
+    <text x="200" y="205" class="small-text" text-anchor="middle">initChart()</text>
+    <text x="200" y="225" class="small-text" text-anchor="middle">初始化ECharts实例</text>
 
-    <!-- OpenAI客户端初始化 -->
-    <rect x="350" y="160" width="200" height="100" class="function"/>
-    <text x="450" y="185" class="text" text-anchor="middle">OpenAI客户端初始化</text>
-    <text x="450" y="210" class="small-text" text-anchor="middle">sql_client</text>
-    <text x="450" y="230" class="small-text" text-anchor="middle">summary_client</text>
+    <!-- 配置设置 -->
+    <rect x="100" y="260" width="200" height="80" class="frontend"/>
+    <text x="200" y="285" class="text" text-anchor="middle">配置设置</text>
+    <text x="200" y="305" class="small-text" text-anchor="middle">setOption(option)</text>
+    <text x="200" y="325" class="small-text" text-anchor="middle">更新图表配置</text>
 
-    <!-- Flask应用初始化 -->
-    <rect x="600" y="160" width="200" height="100" class="function"/>
-    <text x="700" y="185" class="text" text-anchor="middle">Flask应用初始化</text>
-    <text x="700" y="210" class="small-text" text-anchor="middle">app = Flask(__name__)</text>
-    <text x="700" y="230" class="small-text" text-anchor="middle">CORS(app)</text>
+    <!-- 事件处理 -->
+    <rect x="100" y="360" width="200" height="80" class="frontend"/>
+    <text x="200" y="385" class="text" text-anchor="middle">事件处理</text>
+    <text x="200" y="405" class="small-text" text-anchor="middle">handleEvent()</text>
+    <text x="200" y="425" class="small-text" text-anchor="middle">用户交互响应</text>
 
-    <!-- 自定义JSON编码器 -->
-    <rect x="850" y="160" width="200" height="100" class="function"/>
-    <text x="950" y="185" class="text" text-anchor="middle">自定义JSON编码器</text>
-    <text x="950" y="210" class="small-text" text-anchor="middle">CustomJSONEncoder</text>
-    <text x="950" y="230" class="small-text" text-anchor="middle">处理Decimal和日期类型</text>
+    <!-- 后端模块 -->
+    <rect x="600" y="100" width="500" height="400" class="backend" opacity="0.2"/>
+    <text x="620" y="130" class="subtitle backend-text">后端模块 (app.py)</text>
 
-    <!-- 核心功能模块 -->
-    <rect x="50" y="330" width="1100" height="650" class="module" opacity="0.3"/>
-    <text x="70" y="360" class="subtitle">核心功能模块</text>
+    <!-- 数据库查询 -->
+    <rect x="650" y="160" width="200" height="80" class="backend"/>
+    <text x="750" y="185" class="text" text-anchor="middle">数据库查询</text>
+    <text x="750" y="205" class="small-text" text-anchor="middle">queryData()</text>
+    <text x="750" y="225" class="small-text" text-anchor="middle">执行SQL查询</text>
 
-    <!-- 数据库连接 -->
-    <rect x="100" y="390" width="200" height="80" class="function"/>
-    <text x="200" y="415" class="text" text-anchor="middle">数据库连接</text>
-    <text x="200" y="435" class="small-text" text-anchor="middle">get_db_connection()</text>
-    <text x="200" y="455" class="small-text" text-anchor="middle">mysql.connector</text>
+    <!-- 数据处理 -->
+    <rect x="650" y="260" width="200" height="80" class="backend"/>
+    <text x="750" y="285" class="text" text-anchor="middle">数据处理</text>
+    <text x="750" y="305" class="small-text" text-anchor="middle">processData()</text>
+    <text x="750" y="325" class="small-text" text-anchor="middle">处理查询结果</text>
 
-    <!-- SQL执行 -->
-    <rect x="100" y="500" width="200" height="120" class="function"/>
-    <text x="200" y="525" class="text" text-anchor="middle">SQL执行</text>
-    <text x="200" y="545" class="small-text" text-anchor="middle">execute_sql(sql)</text>
-    <text x="200" y="565" class="small-text" text-anchor="middle">SQL清理和格式化</text>
-    <text x="200" y="585" class="small-text" text-anchor="middle">错误处理</text>
-    <text x="200" y="605" class="small-text" text-anchor="middle">结果类型转换</text>
+    <!-- API接口 -->
+    <rect x="650" y="360" width="200" height="80" class="backend"/>
+    <text x="750" y="385" class="text" text-anchor="middle">API接口</text>
+    <text x="750" y="405" class="small-text" text-anchor="middle">getData()</text>
+    <text x="750" y="425" class="small-text" text-anchor="middle">返回处理结果</text>
 
-    <!-- 图表推荐 -->
-    <rect x="100" y="650" width="200" height="100" class="function"/>
-    <text x="200" y="675" class="text" text-anchor="middle">图表推荐</text>
-    <text x="200" y="695" class="small-text" text-anchor="middle">recommend_chart_type(data)</text>
-    <text x="200" y="715" class="small-text" text-anchor="middle">数据特征分析</text>
-    <text x="200" y="735" class="small-text" text-anchor="middle">ECharts配置生成</text>
+    <!-- 数据流转箭头 -->
+    <path d="M300 200 L650 200" class="arrow"/>
+    <text x="475" y="180" class="small-text">发送查询请求</text>
 
-    <!-- 响应生成 -->
-    <rect x="100" y="780" width="200" height="160" class="function"/>
-    <text x="200" y="805" class="text" text-anchor="middle">响应生成</text>
-    <text x="200" y="825" class="small-text" text-anchor="middle">generate_response(user_query)</text>
-    <text x="200" y="845" class="small-text" text-anchor="middle">加载表结构信息</text>
-    <text x="200" y="865" class="small-text" text-anchor="middle">调用SQL生成模型</text>
-    <text x="200" y="885" class="small-text" text-anchor="middle">执行SQL查询</text>
-    <text x="200" y="905" class="small-text" text-anchor="middle">生成结果总结</text>
-    <text x="200" y="925" class="small-text" text-anchor="middle">流式返回结果</text>
+    <path d="M650 300 L300 300" class="arrow"/>
+    <text x="475" y="280" class="small-text">返回查询结果</text>
 
-    <!-- 用户查询处理流程 -->
-    <rect x="350" y="390" width="750" height="550" class="process" opacity="0.2"/>
-    <text x="370" y="415" class="subtitle">用户查询处理流程</text>
-
-    <!-- 接收用户查询 -->
-    <rect x="400" y="440" width="200" height="60" class="process"/>
-    <text x="500" y="465" class="text" text-anchor="middle">接收用户查询</text>
-    <text x="500" y="485" class="small-text" text-anchor="middle">/api/chat (POST)</text>
-
-    <!-- 加载数据库表结构 -->
-    <rect x="400" y="530" width="200" height="60" class="data"/>
-    <text x="500" y="555" class="text" text-anchor="middle">加载数据库表结构</text>
-    <text x="500" y="575" class="small-text" text-anchor="middle">databaseTableSchema.md</text>
-
-    <!-- 调用SQL生成模型 -->
-    <rect x="400" y="620" width="200" height="80" class="api"/>
-    <text x="500" y="645" class="text" text-anchor="middle">调用SQL生成模型</text>
-    <text x="500" y="665" class="small-text" text-anchor="middle">function_calling</text>
-    <text x="500" y="685" class="small-text" text-anchor="middle">execute_sql工具函数</text>
-
-    <!-- 执行SQL查询 -->
-    <rect x="400" y="730" width="200" height="60" class="database"/>
-    <text x="500" y="755" class="text" text-anchor="middle">执行SQL查询</text>
-    <text x="500" y="775" class="small-text" text-anchor="middle">MySQL数据库</text>
-
-    <!-- 查询结果处理 -->
-    <path d="M400 820 L600 820 L550 870 L450 870 Z" class="decision"/>
-    <text x="500" y="845" class="text" text-anchor="middle">查询结果处理</text>
-
-    <!-- 生成图表配置 -->
-    <rect x="650" y="730" width="200" height="60" class="process"/>
-    <text x="750" y="755" class="text" text-anchor="middle">生成图表配置</text>
-    <text x="750" y="775" class="small-text" text-anchor="middle">ECharts配置项</text>
-
-    <!-- 调用结果总结模型 -->
-    <rect x="650" y="820" width="200" height="80" class="api"/>
-    <text x="750" y="845" class="text" text-anchor="middle">调用结果总结模型</text>
-    <text x="750" y="865" class="small-text" text-anchor="middle">OpenAI API</text>
-    <text x="750" y="885" class="small-text" text-anchor="middle">自然语言总结</text>
-
-    <!-- 返回完整响应 -->
-    <rect x="400" y="900" width="450" height="60" class="process"/>
-    <text x="625" y="935" class="text" text-anchor="middle">返回完整响应 (Server-Sent Events)</text>
-
-    <!-- API接口部分 -->
-    <rect x="50" y="1010" width="1100" height="200" class="module" opacity="0.3"/>
-    <text x="70" y="1040" class="subtitle">Web API接口</text>
-
-    <!-- /api/chat接口 -->
-    <rect x="100" y="1070" width="300" height="100" class="function"/>
-    <text x="250" y="1095" class="text" text-anchor="middle">/api/chat (POST)</text>
-    <text x="250" y="1115" class="small-text" text-anchor="middle">处理用户查询请求</text>
-    <text x="250" y="1135" class="small-text" text-anchor="middle">返回Server-Sent Events流</text>
-    <text x="250" y="1155" class="small-text" text-anchor="middle">stream_with_context(generate())</text>
-
-    <!-- /api/env-config接口 -->
-    <rect x="450" y="1070" width="300" height="100" class="function"/>
-    <text x="600" y="1095" class="text" text-anchor="middle">/api/env-config (GET)</text>
-    <text x="600" y="1115" class="small-text" text-anchor="middle">获取系统配置信息</text>
-    <text x="600" y="1135" class="small-text" text-anchor="middle">SQL显示设置</text>
-    <text x="600" y="1155" class="small-text" text-anchor="middle">示例问题列表</text>
-
-    <!-- 静态文件服务 -->
-    <rect x="800" y="1070" width="300" height="100" class="function"/>
-    <text x="950" y="1095" class="text" text-anchor="middle">静态文件服务</text>
-    <text x="950" y="1115" class="small-text" text-anchor="middle">/ (GET)</text>
-    <text x="950" y="1135" class="small-text" text-anchor="middle">app.send_static_file('index.html')</text>
-    <text x="950" y="1155" class="small-text" text-anchor="middle">前端页面和资源</text>
-
-    <!-- Function Calling工具集 -->
-    <rect x="50" y="1240" width="1100" height="320" class="module" opacity="0.3"/>
-    <text x="70" y="1270" class="subtitle">Function Calling工具集</text>
-
-    <!-- SQL生成工具 -->
-    <rect x="100" y="1300" width="300" height="220" class="api"/>
-    <text x="250" y="1325" class="text" text-anchor="middle">SQL生成工具</text>
-    <text x="250" y="1350" class="small-text" text-anchor="middle">工具名称: execute_sql</text>
-    <text x="250" y="1375" class="small-text" text-anchor="middle">参数: {"sql": "SQL查询语句"}</text>
-    <text x="250" y="1400" class="code" text-anchor="middle">tools = [{</text>
-    <text x="250" y="1420" class="code" text-anchor="middle">  "type": "function",</text>
-    <text x="250" y="1440" class="code" text-anchor="middle">  "function": {</text>
-    <text x="250" y="1460" class="code" text-anchor="middle">    "name": "execute_sql",</text>
-    <text x="250" y="1480" class="code" text-anchor="middle">    "parameters": {...}</text>
-    <text x="250" y="1500" class="code" text-anchor="middle">  }</text>
-    <text x="250" y="1520" class="code" text-anchor="middle">}]</text>
-
-    <!-- 工具调用优势 -->
-    <rect x="450" y="1300" width="650" height="220" class="function"/>
-    <text x="775" y="1325" class="text" text-anchor="middle">Function Calling调用优势</text>
-    
-    <text x="470" y="1355" class="small-text"><tspan class="highlight">1. 精准SQL生成</tspan></text>
-    <text x="490" y="1375" class="small-text">- 强类型约束：确保生成SQL符合数据库schema</text>
-    <text x="490" y="1395" class="small-text">- 参数验证：自动检查表名和字段名的有效性</text>
-    <text x="490" y="1415" class="small-text">- 语法规范：统一的SQL语句格式化处理</text>
-    
-    <text x="470" y="1440" class="small-text"><tspan class="highlight">2. 结构化交互</tspan></text>
-    <text x="490" y="1460" class="small-text">- 清晰的工具定义：每个功能都有明确的输入输出</text>
-    <text x="490" y="1480" class="small-text">- 严格的参数校验：通过JSON Schema实现类型检查</text>
-    
-    <text x="470" y="1505" class="small-text"><tspan class="highlight">3. 流程可控性</tspan></text>
-    <text x="490" y="1525" class="small-text">- 分步执行：工具调用结果实时流式返回</text>
-    <text x="490" y="1545" class="small-text">- 错误隔离：各环节独立异常处理，确保系统稳定性</text>
-
-    <!-- 连接线 -->
-    <!-- 系统初始化连接 -->
-    <path d="M300 210 L350 210" class="arrow"/>
-    <path d="M550 210 L600 210" class="arrow"/>
-    <path d="M800 210 L850 210" class="arrow"/>
-
-    <!-- 核心功能模块内部连接 -->
-    <path d="M200 470 L200 500" class="arrow"/>
-    <path d="M200 620 L200 650" class="arrow"/>
-    <path d="M200 750 L200 780" class="arrow"/>
-
-    <!-- 用户查询处理流程连接 -->
-    <path d="M500 500 L500 530" class="arrow"/>
-    <path d="M500 590 L500 620" class="arrow"/>
-    <path d="M500 700 L500 730" class="arrow"/>
-    <path d="M500 790 L500 820" class="arrow"/>
-    <path d="M550 870 L625 870 L625 900" class="arrow"/>
-    
-    <path d="M600 755 L650 755" class="arrow"/>
-    <path d="M600 845 L650 845" class="arrow"/>
-    <path d="M750 790 L750 820" class="arrow"/>
-    <path d="M750 900 L750 870" class="arrow"/>
+    <path d="M300 400 L650 400" class="dashed-arrow"/>
+    <text x="475" y="380" class="small-text">实时数据更新</text>
 
     <!-- 模块间连接 -->
-    <path d="M300 860 L350 860" class="dashed-arrow"/>
-    <path d="M300 1120 L350 1120 L350 860" class="dashed-arrow"/>
-    <path d="M600 1070 L600 960" class="dashed-arrow"/>
-    <path d="M950 1070 L950 700 L850 700 L850 845" class="dashed-arrow"/>
-    
-    <!-- Function Calling连接 -->
-    <path d="M400 680 L350 680 L350 1400 L400 1400" class="dashed-arrow"/>
-    <path d="M400 1400 L450 1400" class="arrow"/>
+    <path d="M200 240 L200 260" class="arrow"/>
+    <path d="M200 340 L200 360" class="arrow"/>
+    <path d="M750 240 L750 260" class="arrow"/>
+    <path d="M750 340 L750 360" class="arrow"/>
 
-    <!-- 数据库连接 -->
-    <path d="M400 755 L350 755 L350 430 L300 430" class="dashed-arrow"/>
-    <path d="M400 550 L350 550 L350 430" class="dashed-arrow"/>
+    <!-- 说明文本 -->
+    <text x="600" y="520" class="subtitle" text-anchor="middle">数据流转说明</text>
+    <text x="100" y="550" class="text">前端模块 (Frontend):</text>
+    <text x="120" y="570" class="small-text">1. initChart(): 初始化ECharts图表实例</text>
+    <text x="120" y="590" class="small-text">2. setOption(): 配置图表参数和样式</text>
+    <text x="120" y="610" class="small-text">3. handleEvent(): 处理用户交互事件</text>
 
-    <!-- 图表推荐连接 -->
-    <path d="M650 755 L625 755 L625 700 L350 700 L350 680" class="dashed-arrow"/>
-
-    <!-- 数据流说明 -->
-    <rect x="50" y="1580" width="1100" height="50" class="module" opacity="0.3"/>
-    <text x="600" y="1610" class="text" text-anchor="middle">数据流：用户输入 → 自然语言 → SQL → 数据库查询 → 数据处理 → 可视化 → 智能总结 → 前端展示</text>
+    <text x="600" y="550" class="text">后端模块 (Backend):</text>
+    <text x="620" y="570" class="small-text">1. queryData(): 执行数据库查询操作</text>
+    <text x="620" y="590" class="small-text">2. processData(): 处理和转换查询结果</text>
+    <text x="620" y="610" class="small-text">3. getData(): 提供API接口服务</text>
 </svg>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <!-- 定义样式 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+    <linearGradient id="userGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4F8BF9" />
+      <stop offset="100%" stop-color="#2D5BF9" />
+    </linearGradient>
+    <linearGradient id="aiGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="dbGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#D97706" />
+    </linearGradient>
+    <linearGradient id="resultGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    <filter id="shadow" x="-2" y="-2" width="110%" height="110%">
+      <feDropShadow dx="2" dy="2" stdDeviation="2" flood-color="rgba(0, 0, 0, 0.3)" />
+    </filter>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="800" height="600" fill="#f8fafc" rx="10" ry="10" />
+  
+  <!-- 标题 -->
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#1e293b">Function Calling 自然语言转SQL流程</text>
+  
+  <!-- 用户输入框 -->
+  <rect x="100" y="80" width="600" height="60" rx="8" ry="8" fill="url(#userGradient)" filter="url(#shadow)" />
+  <text x="400" y="115" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333333">用户自然语言查询</text>
+  <text x="400" y="135" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333333">"查询2023年销售额最高的前5个产品"</text>
+  
+  <!-- 箭头1 -->
+  <line x1="400" y1="140" x2="400" y2="170" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
+  
+  <!-- 消息构建 -->
+  <rect x="150" y="170" width="500" height="60" rx="8" ry="8" fill="#e2e8f0" filter="url(#shadow)" />
+  <text x="400" y="200" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">构建消息上下文</text>
+  <text x="400" y="220" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#334155">加载数据库表结构、训练数据和当前日期</text>
+  
+  <!-- 箭头2 -->
+  <line x1="400" y1="230" x2="400" y2="260" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
+  
+  <!-- Function Calling 定义 -->
+  <rect x="100" y="260" width="600" height="70" rx="8" ry="8" fill="#cbd5e1" filter="url(#shadow)" />
+  <text x="400" y="285" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">定义 Function Calling</text>
+  <text x="400" y="305" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#334155">定义execute_sql函数，包含参数schema: {"sql": "要执行的SQL查询语句"}</text>
+  <text x="400" y="320" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#334155">强制模型使用execute_sql函数: tool_choice={"type": "function", "function": {"name": "execute_sql"}}</text>
+  
+  <!-- 箭头3 -->
+  <line x1="400" y1="330" x2="400" y2="360" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
+  
+  <!-- OpenAI API调用 -->
+  <rect x="150" y="360" width="500" height="60" rx="8" ry="8" fill="url(#aiGradient)" filter="url(#shadow)" />
+  <text x="400" y="390" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333333">OpenAI API调用</text>
+  <text x="400" y="410" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333333">使用sql_client.chat.completions.create生成SQL查询</text>
+  
+  <!-- 箭头4 -->
+  <line x1="400" y1="420" x2="400" y2="450" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
+  
+  <!-- SQL解析和清理 -->
+  <rect x="150" y="450" width="500" height="60" rx="8" ry="8" fill="#e2e8f0" filter="url(#shadow)" />
+  <text x="400" y="480" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#334155">SQL解析和清理</text>
+  <text x="400" y="500" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#334155">从API响应中提取SQL并进行格式化清理</text>
+  
+  <!-- 箭头5 -->
+  <line x1="400" y1="510" x2="400" y2="540" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" />
+  
+  <!-- 数据库执行 -->
+  <rect x="150" y="540" width="200" height="60" rx="8" ry="8" fill="url(#dbGradient)" filter="url(#shadow)" />
+  <text x="250" y="570" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333333">数据库执行SQL</text>
+  <text x="250" y="590" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333333">execute_sql函数执行查询</text>
+  
+  <!-- 结果处理 -->
+  <rect x="450" y="540" width="200" height="60" rx="8" ry="8" fill="url(#resultGradient)" filter="url(#shadow)" />
+  <text x="550" y="570" font-family="Arial, sans-serif" font-size="16" font-weight="bold" text-anchor="middle" fill="#333333">结果处理与总结</text>
+  <text x="550" y="590" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#333333">生成自然语言总结和图表推荐</text>
+  
+  <!-- 连接线 -->
+  <path d="M 350 570 L 450 570" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)" fill="none" />
+  
+  <!-- 注释 -->
+  <text x="400" y="630" font-family="Arial, sans-serif" font-size="14" font-style="italic" text-anchor="middle" fill="#64748b">Function Calling 实现了自然语言到SQL的转换，并通过工具函数执行查询获取结果</text>
+</svg>

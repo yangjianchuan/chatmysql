@@ -30,31 +30,67 @@ ChatMySQL 是一个基于自然语言的 MySQL 数据库查询系统，它能让
 
 ## 系统要求
 
-- Python 3.x
+- Python 3.12 或以上
 - MySQL 8.0 或以上
 - OpenAI API 兼容格式的API访问权限
 - chrome等现代浏览器
 
+## 在线MySQL环境
+
+如果您没有本地MySQL环境，可以使用[SQLPub](https://sqlpub.com)提供的免费在线MySQL服务：
+
 ## 快速开始
+
+### 方式一：本地部署
 
 1. 克隆项目
 ```bash
-git clone [项目地址]
+git clone https://github.com/yangjianchuan/chatmysql.git
 cd chatmysql
 ```
-
-2. 安装依赖
+2. windows系统创建虚拟环境
+```bash
+python -m venv venv
+```
+3.激活虚拟环境
+```bash
+source venv/Scripts/activate
+```
+4. 安装依赖
 ```bash
 pip install -r requirements.txt
 ```
 
-3. 配置环境变量
+5. 配置环境变量
 ```bash
 cp .env.example .env
 # 编辑 .env 文件，填写必要的配置信息
 ```
 
-4. 数据准备
+6. 数据准备
+   - 在MySQL中创建数据表，SQL语句如下：
+   ```sql
+   CREATE TABLE `contracts` (
+     `id` varchar(50) DEFAULT NULL,
+     `COMPANY_NAME` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '公司',
+     `fdate` date NOT NULL COMMENT '日期',
+     `SIGNED_SETS` int NOT NULL COMMENT '签约套数',
+     `SIGNED_AREA` decimal(16,2) NOT NULL COMMENT '签约面积',
+     `SIGNED_AMOUNT` decimal(16,2) NOT NULL COMMENT '签约金额',
+     PRIMARY KEY (`COMPANY_NAME`,`fdate`),
+     KEY `id` (`id`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='签约表'
+   ```
+   
+   - 插入示例数据（完整数据见 `databaseTable/contracts_insert.sql`）：
+   ```sql
+   INSERT INTO `contracts` (`id`,`COMPANY_NAME`,`fdate`,`SIGNED_SETS`,`SIGNED_AREA`,`SIGNED_AMOUNT`) 
+   VALUES ('202403151412041642','DG公司','2023-01-01','94',222.00,809530000.00);
+   INSERT INTO `contracts` (`id`,`COMPANY_NAME`,`fdate`,`SIGNED_SETS`,`SIGNED_AREA`,`SIGNED_AMOUNT`)
+   VALUES ('202403156770318536','DG公司','2023-02-01','66',270.00,1053520000.00);
+   -- 更多数据...
+   ```
+   
    - 在 `databaseTableSchema.md` 文件中编写系统提示词和数据库表结构、示例数据
      - 该文件包含SQL开发规范、数据库表结构定义和示例数据
      - 系统会使用此文件作为上下文来理解数据库结构和生成正确的SQL查询
@@ -63,13 +99,76 @@ cp .env.example .env
      - 每个问答对包含用户问题和对应的SQL查询响应
      - 系统会使用这些示例来提高自然语言到SQL的转换准确性
 
-5. 启动服务器
+7. 启动服务器
 ```bash
 python app.py
 ```
 
-6. 访问应用
+8. 访问应用
 打开浏览器访问 http://localhost:5000
+
+### 方式二：Docker部署
+
+1. 克隆项目并进入目录
+```bash
+git clone [项目地址]
+cd chatmysql
+```
+
+2. 配置环境变量
+```bash
+cp .env.example .env
+# 编辑 .env 文件，填写必要的配置信息
+```
+
+3. 启动服务
+```bash
+docker-compose up -d
+```
+
+4. 访问应用
+打开浏览器访问 http://localhost:5000
+
+### Docker部署说明
+
+#### 容器服务
+
+本项目使用Docker Compose管理以下服务：
+
+- **chatmysql**: 主应用服务
+  - 基于Python 3.12镜像
+  - 暴露5000端口
+  - 自动加载环境变量配置
+
+#### 环境变量配置
+
+在使用Docker部署时，需要在 `.env` 文件中正确配置以下变量：
+
+```env
+# MySQL配置
+MYSQL_HOST=mysql    # 使用容器服务名
+MYSQL_PORT=3306
+MYSQL_DATABASE=your_database
+MYSQL_USER=your_username
+MYSQL_PASSWORD=your_password
+
+# 其他配置保持不变
+```
+
+#### 常用Docker命令
+
+- 启动服务：`docker-compose up -d`
+- 停止服务：`docker-compose down`
+- 查看日志：`docker-compose logs -f`
+- 重启服务：`docker-compose restart`
+- 重建容器：`docker-compose up -d --build`
+
+#### 注意事项
+
+1. 首次启动时会自动创建必要的数据卷和网络
+2. MySQL数据库首次启动需要一定时间初始化
+3. 确保Docker和Docker Compose已正确安装
+4. 防火墙需要允许容器间通信
 
 ## 环境变量配置
 

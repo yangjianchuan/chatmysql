@@ -46,7 +46,10 @@ def get_db_connection():
         'database': os.getenv('MYSQL_DATABASE'),
         'raise_on_warnings': os.getenv('MYSQL_RAISE_ON_WARNINGS') == 'True',
         'auth_plugin': os.getenv('MYSQL_AUTH_PLUGIN'),
-        'connection_timeout': int(os.getenv('MYSQL_CONNECTION_TIMEOUT'))
+        'connection_timeout': int(os.getenv('MYSQL_CONNECTION_TIMEOUT')),
+        'use_pure': True,  # 使用纯Python实现，避免C扩展可能导致的段错误
+        'get_warnings': True,  # 启用警告获取
+        'buffered': True  # 使用缓冲查询，避免内存问题
     }
     return mysql.connector.connect(**config)
 
@@ -511,7 +514,6 @@ def generate_response(user_query):
 
                 # Continue with summary generation
                 summary_messages =[]
-                # summary_messages.append({"role": "system", "content": f"今天的日期是 {current_date}"})
                 summary_messages.append({"role": "user", "content": user_query})          
                 summary_messages.append({
                     "role": "assistant",
