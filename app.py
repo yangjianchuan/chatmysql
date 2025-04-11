@@ -321,7 +321,7 @@ def recommend_chart_type(data):
         sample = data[0][col]
         if isinstance(sample, (int, float, Decimal)):
             numeric_columns.append(col)
-        elif isinstance(sample, (datetime, date)):
+        elif isinstance(sample, (datetime, date)) or (isinstance(sample, str) and col.lower() == 'date'):
             date_columns.append(col)
         else:
             categorical_columns.append(col)
@@ -336,6 +336,7 @@ def recommend_chart_type(data):
             series_data.append({
                 'name': numeric_col,
                 'type': 'line' if date_columns else 'bar',
+                'smooth': True if date_columns else False,
                 'data': [float(row[numeric_col]) if isinstance(row[numeric_col], Decimal) else row[numeric_col] for row in data]
             })
             
