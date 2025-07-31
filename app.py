@@ -9,6 +9,19 @@ from dotenv import load_dotenv
 import os
 from decimal import Decimal
 import re
+import logging
+from datetime import datetime
+
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('app.log', encoding='utf-8')
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Custom JSON encoder to handle Decimal and date
 class CustomJSONEncoder(json.JSONEncoder):
@@ -51,9 +64,20 @@ def get_db_connection():
         'get_warnings': True,  # 启用警告获取
         'buffered': True  # 使用缓冲查询，避免内存问题
     }
-    return mysql.connector.connect(**config)
+    
+    logger.info(f"尝试连接数据库: host={config['host']}, port={config['port']}, database={config['database']}, user={config['user']}")
+    
+    try:
+        connection = mysql.connector.connect(**config)
+        logger.info("数据库连接成功")
+        return connection
+    except Exception as e:
+        logger.error(f"数据库连接失败: {str(e)}")
+        logger.error(f"数据库配置: host={config['host']}, port={config['port']}, database={config['database']}, user={config['user']}")
+        raise
 
 def execute_sql(sql):
+    logger.info(f"开始执行SQL查询: {sql}")
     try:
         # 添加 Match 类用于模拟正则匹配对象
         class Match:
@@ -277,15 +301,19 @@ def execute_sql(sql):
                     if isinstance(value, Decimal):
                         row[key] = float(value)
             
+            logger.info(f"SQL查询执行成功，返回{len(results)}条记录")
+            logger.debug(f"查询结果: {results}")
             return results
         except Error as e:
             # Return more detailed error information
-            return {
+            error_info = {
                 "error": str(e),
                 "sql_state": e.sqlstate if hasattr(e, 'sqlstate') else None,
                 "errno": e.errno if hasattr(e, 'errno') else None,
                 "executed_query": cleaned_sql
             }
+            logger.error(f"SQL查询执行失败: {error_info}")
+            return error_info
         finally:
             cursor.close()
             
@@ -408,22 +436,30 @@ def generate_response(user_query):
     messages = []
     messages.append({"role": "system", "content": f"{databaseTableSchema}"})
     
+    logger.info(f"开始处理用户查询: {user_query}")
+    logger.debug(f"当前日期: {current_date}")
+    
     # 根据环境变量决定是否加载训练数据
     if os.getenv('LOAD_TRAINING_DATA', '否') == '是':
         try:
             with open('training_data.jsonl', 'r', encoding='utf-8') as file:
+                training_lines = 0
                 for line in file:
                     if line.strip():  # 跳过空行
                         training_data = json.loads(line)
                         # 将训练数据中的消息添加到messages列表
                         messages.extend(training_data.get("messages", []))
+                        training_lines += 1
+                logger.info(f"成功加载训练数据: {training_lines} 条")
             messages.append({"role": "user", "content": "后续的问题请参考我们之前的聊天内容。"})
             messages.append({"role": "assistant", "content": "好的，请继续提问。"})
         except Exception as e:
-            print(f"Warning: Could not load training data: {str(e)}")
+            logger.warning(f"无法加载训练数据: {str(e)}")
     
     # messages.append({"role": "user", "content": user_query})
     messages.append({"role": "user", "content": f"""当前日期是 {current_date}。{user_query}"""})
+    
+    logger.debug(f"构建的消息列表: {json.dumps(messages, ensure_ascii=False, indent=2)}")
 
     tools = [
         {
@@ -446,6 +482,9 @@ def generate_response(user_query):
     ]
 
     try:
+        logger.info(f"开始调用OpenAI API生成SQL，使用模型: {sql_model}")
+        logger.debug(f"API调用参数: messages={len(messages)}, tools={tools}, temperature=0")
+        
         # First, get SQL query using sql_client
         response = sql_client.chat.completions.create(
             model=sql_model,
@@ -458,12 +497,18 @@ def generate_response(user_query):
 
         # Initialize variables to collect the streaming response
         collected_sql = ""
+        chunk_count = 0
         for chunk in response:
+            chunk_count += 1
+            logger.debug(f"收到第{chunk_count}个chunk")
+            
             if not hasattr(chunk, 'choices') or not chunk.choices:
+                logger.warning(f"第{chunk_count}个chunk没有choices属性")
                 continue
             
             choice = chunk.choices[0]
             if not hasattr(choice, 'delta') or not choice.delta:
+                logger.warning(f"第{chunk_count}个chunk的choice没有delta属性")
                 continue
                 
             # Handle tool calls in delta
@@ -471,27 +516,40 @@ def generate_response(user_query):
                 tool_call = choice.delta.tool_calls[0]
                 if hasattr(tool_call, 'function') and hasattr(tool_call.function, 'arguments'):
                     collected_sql += tool_call.function.arguments
+                    logger.debug(f"收到工具调用参数: {tool_call.function.arguments}")
             
             # Handle direct content in delta
             elif hasattr(choice.delta, 'content') and choice.delta.content:
                 collected_sql += choice.delta.content
+                logger.debug(f"收到内容: {choice.delta.content}")
+        
+        logger.info(f"完成收集SQL，总长度: {len(collected_sql)}字符")
 
         # Process the collected SQL
         if collected_sql:
             try:
+                logger.info("开始处理收集到的SQL")
+                logger.debug(f"原始收集内容: {collected_sql}")
+                
                 # Try to parse as JSON first (for tool calls)
                 try:
                     sql_args = json.loads(collected_sql)
                     sql_query = sql_args.get("sql", "")
-                except json.JSONDecodeError:
+                    logger.info("成功解析为JSON格式")
+                except json.JSONDecodeError as e:
+                    logger.warning(f"JSON解析失败: {str(e)}，尝试从markdown块提取")
                     # If not JSON, try to extract SQL from markdown blocks
                     sql_match = re.search(r'```sql\s*(.*?)\s*```', collected_sql, re.DOTALL)
                     if sql_match:
                         sql_query = sql_match.group(1).strip()
+                        logger.info("从markdown块中提取到SQL")
                     else:
                         # If no markdown blocks, use the raw content
                         sql_query = collected_sql.strip()
+                        logger.info("使用原始内容作为SQL")
 
+                logger.info(f"提取到的SQL: {sql_query}")
+                
                 if not sql_query:
                     raise ValueError("No SQL query could be extracted from the response")
 
@@ -502,6 +560,7 @@ def generate_response(user_query):
                 }
 
                 # Execute the SQL query
+                logger.info("开始执行SQL查询")
                 query_results = execute_sql(sql_query)
                 
                 # 添加图表推荐
@@ -512,6 +571,8 @@ def generate_response(user_query):
                     "content": query_results,
                     "chart": chart_recommendation
                 }
+
+                logger.info(f"图表推荐: {chart_recommendation}")
 
                 # Continue with summary generation
                 summary_messages =[]
@@ -526,10 +587,11 @@ def generate_response(user_query):
                 summary_messages.append({"role": "user", "content": summary_prompt})
                 
                 # 打印出summary_messages
-                print("Summary Messages:")
-                for msg in summary_messages:
-                    print(f"{msg['role']}: {msg['content']}\n")
+                logger.info("Summary Messages:")
+                for i, msg in enumerate(summary_messages):
+                    logger.info(f"消息{i+1} - {msg['role']}: {msg['content']}")
 
+                logger.info(f"开始调用摘要生成API，使用模型: {summary_model}")
                 final_response = summary_client.chat.completions.create(
                     model=summary_model,
                     messages=summary_messages,
@@ -538,38 +600,60 @@ def generate_response(user_query):
                 )
 
                 summary = ""
+                summary_chunk_count = 0
                 for chunk in final_response:
+                    summary_chunk_count += 1
                     if hasattr(chunk.choices[0].delta, 'content') and chunk.choices[0].delta.content:
-                        summary += chunk.choices[0].delta.content
+                        content = chunk.choices[0].delta.content
+                        summary += content
+                        logger.debug(f"收到摘要内容第{summary_chunk_count}段: {content}")
                         yield {
                             "type": "summary",
                             "content": summary
                         }
+                
+                logger.info(f"摘要生成完成，总长度: {len(summary)}字符")
 
             except Exception as e:
+                logger.error(f"处理SQL响应时出错: {str(e)}")
+                logger.error(f"错误详情: {type(e).__name__}: {str(e)}")
                 yield {"error": f"Error processing SQL response: {str(e)}"}
         else:
+            logger.error("没有收到有效的API响应")
             yield {"error": "No valid response received from the API"}
 
     except Exception as e:
+        logger.error(f"API调用错误: {str(e)}")
+        logger.error(f"错误类型: {type(e).__name__}")
+        logger.error(f"错误堆栈:", exc_info=True)
         yield {"error": f"API调用错误: {str(e)}"}
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
     if not request.is_json:
+        logger.warning("请求Content-Type不是application/json")
         return jsonify({"error": "Content-Type must be application/json"}), 400
     
     data = request.json
     user_query = data.get('query', '')
     
+    logger.info(f"收到聊天请求: {user_query}")
+    
     if not user_query:
+        logger.warning("用户查询为空")
         return jsonify({"error": "Query parameter is required"}), 400
     
     def generate():
         try:
+            logger.info("开始生成响应")
+            response_count = 0
             for response_chunk in generate_response(user_query):
+                response_count += 1
+                logger.debug(f"生成响应块{response_count}: {response_chunk}")
                 yield f"data: {json.dumps(response_chunk, cls=CustomJSONEncoder, ensure_ascii=False)}\n\n"
+            logger.info(f"响应生成完成，共生成{response_count}个响应块")
         except Exception as e:
+            logger.error(f"生成响应时出错: {str(e)}")
             error_response = {"error": str(e)}
             yield f"data: {json.dumps(error_response, cls=CustomJSONEncoder, ensure_ascii=False)}\n\n"
     
@@ -609,4 +693,11 @@ def favicon():
     return '', 204  # No content
 
 if __name__ == '__main__':
+    logger.info("应用启动中...")
+    logger.info(f"环境变量配置:")
+    logger.info(f"  SQL_MODEL: {os.getenv('SQL_MODEL', '未设置')}")
+    logger.info(f"  SUMMARY_MODEL: {os.getenv('SUMMARY_MODEL', '未设置')}")
+    logger.info(f"  MYSQL_HOST: {os.getenv('MYSQL_HOST', '未设置')}")
+    logger.info(f"  MYSQL_DATABASE: {os.getenv('MYSQL_DATABASE', '未设置')}")
+    logger.info("应用启动完成，开始监听端口5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
