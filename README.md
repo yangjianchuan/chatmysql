@@ -247,6 +247,16 @@ ChatMySQL 应用使用 `.env` 文件来配置系统的各项参数。以下是�
 - 跨域安全控制
 - 环境变量管理敏感信息
 
+## 安全注意事项
+
+### protobuf 漏洞监控 (CVE 披露中)
+
+当前 `protobuf` 包存在 DoS 漏洞（影响版本 <= 6.33.4），详情见 [GitHub Issue #17254](https://github.com/protocolbuffers/protobuf/issues/17254)。
+
+- **当前状态**: 无可用补丁版本
+- **缓解措施**: 本项目未使用受影响的 `ParseDict()` 接口，风险较低
+- **建议**: 定期检查 protobuf 更新，及时升级到修复版本
+
 ## 使用示例
 
 1. 在查询框输入自然语言问题，如：
