@@ -23,4 +23,4 @@ typing_extensions==4.13.1
 # Ref: https://github.com/protocolbuffers/protobuf/issues/17254
 # No patched version available yet. Monitor for updates.
 # When fix is released, use: protobuf>=<fixed_version>
-protobuf==5.29.5
+protobuf==5.29.6
